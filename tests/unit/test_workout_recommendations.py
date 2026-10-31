@@ -7,9 +7,9 @@ Tests:
 - Karvonen 5-Zone calculation logic
 """
 
-import pytest
 import json
-from app.fitness_math import recommend_workout, calculate_training_zones
+
+from app.fitness_math import calculate_training_zones, recommend_workout
 
 
 class TestWorkoutRecommendations:

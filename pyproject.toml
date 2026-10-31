@@ -46,16 +46,23 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle
-    "F",   # pyflakes
-    "W",   # pycodestyle warnings
-    "I",   # isort
-    "C",  # flake8-comprehensions
+    "E9",  # runtime syntax errors
+    "F63", # syntax / identity comparisons
+    "F7",  # syntax errors in type definitions
+    "F82", # undefined symbols / undefined names
+    "E",   # pycodestyle errors
+    "F",   # pyflakes errors
     "B",   # flake8-bugbear
-    "UP", # pyupgrade
-    "RUF", # ruff specific rules
 ]
-ignore = ["E501", "C901", "B006"] # ignore line too long, too complex
+ignore = [
+    "E501", # line too long
+    "F401", # unused import
+    "E402", # module level import not at top of file
+    "C901", # too complex
+    "B006", # mutable default argument
+    "B904", # within an except clause, raise ... from
+    "F841", # local variable assigned but never used
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "frontend"]

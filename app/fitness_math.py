@@ -9,9 +9,7 @@ Provides validated calculations for:
 """
 
 import json
-from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
-
+from typing import Any
 
 ACTIVITY_MULTIPLIERS = {
     "sedentary": 1.2,          # Little or no exercise
@@ -38,7 +36,7 @@ def calculate_bmr(weight_kg: float, height_cm: float, age: int, gender: str) -> 
         raise ValueError(f"Invalid height: {height_cm} cm. Must be between 80 and 260 cm.")
     if not isinstance(age, int) or age < 10 or age > 120:
         raise ValueError(f"Invalid age: {age}. Must be between 10 and 120 years.")
-    
+
     gender_norm = str(gender).strip().lower()
     if gender_norm not in ("male", "female", "m", "f"):
         raise ValueError(f"Invalid gender: '{gender}'. Must be 'male' or 'female'.")
@@ -54,7 +52,7 @@ def calculate_tdee(bmr: float, activity_level: str) -> float:
     """Calculates Total Daily Energy Expenditure (TDEE)."""
     if bmr <= 0:
         raise ValueError(f"BMR must be positive. Received: {bmr}")
-    
+
     level_norm = str(activity_level).strip().lower()
     if level_norm not in ACTIVITY_MULTIPLIERS:
         valid_keys = ", ".join(ACTIVITY_MULTIPLIERS.keys())
@@ -71,7 +69,7 @@ def calculate_daily_calories_and_macros(
     gender: str,
     activity_level: str,
     goal: str = "maintenance",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Calculates complete daily calorie requirements and macro breakdown."""
     goal_norm = str(goal).strip().lower()
     if goal_norm not in GOAL_CALORIE_ADJUSTMENTS:
@@ -128,15 +126,15 @@ def calculate_training_zones(max_heart_rate: int, resting_heart_rate: int = 60) 
         }
         return json.dumps(result, indent=2)
     except Exception as e:
-        return f"Error calculating training zones: {str(e)}"
+        return f"Error calculating training zones: {e!s}"
 
 
 def recommend_workout(
     fitness_level: str,
     target_event: str,
     day_of_week: str,
-    previous_activity: Optional[str] = None,
-) -> Dict[str, Any]:
+    previous_activity: str | None = None,
+) -> dict[str, Any]:
     """Generates structured workout recommendations based on triathlon periodization rules."""
     valid_levels = ("beginner", "intermediate", "advanced")
     valid_events = ("sprint", "olympic", "70.3", "ironman", "general_fitness")

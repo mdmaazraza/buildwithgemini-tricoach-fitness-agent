@@ -7,7 +7,6 @@ Tests:
 - User feedback submission
 """
 
-import pytest
 from fastapi import status
 
 

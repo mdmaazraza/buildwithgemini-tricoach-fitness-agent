@@ -8,15 +8,21 @@ Simulates real user workflows:
 5. Sending a workout message and verifying chatbot response bubble renders
 """
 
-import os
-import time
 import subprocess
+import sys
+import time
+
 import pytest
 
-playwright = pytest.importorskip("playwright")
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
 
 
+@pytest.mark.skipif(not HAS_PLAYWRIGHT, reason="Playwright is not installed")
 @pytest.mark.e2e
 class TestPlaywrightE2E:
     """Browser-level E2E tests simulating athlete workflows."""
@@ -28,7 +34,7 @@ class TestPlaywrightE2E:
         cls.base_url = f"http://127.0.0.1:{cls.port}"
         cls.server_process = subprocess.Popen(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "uvicorn",
                 "app.web_server:app",

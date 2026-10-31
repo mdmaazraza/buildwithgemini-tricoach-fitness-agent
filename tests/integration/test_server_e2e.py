@@ -24,6 +24,7 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
+
 pytest.importorskip("a2a")
 
 import requests

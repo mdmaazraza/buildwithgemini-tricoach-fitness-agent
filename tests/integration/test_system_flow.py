@@ -6,7 +6,6 @@ Tests:
 - End-to-end data integrity across services
 """
 
-import pytest
 from fastapi import status
 
 
@@ -29,6 +28,7 @@ class TestSystemFlow:
         res_log = test_client.post("/api/workouts", json=workout_payload)
         assert res_log.status_code == status.HTTP_200_OK
         workout_id = res_log.json()["workout"]["workout_id"]
+        assert workout_id is not None
 
         # 2. User queries their workout logs via Chatbot
         chat_payload = {

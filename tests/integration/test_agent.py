@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+
 pytest.importorskip("google.adk")
 
 from google.adk.agents.run_config import RunConfig, StreamingMode

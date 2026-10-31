@@ -8,9 +8,6 @@ Tests:
 - User ID / athlete tracking in client sessions
 """
 
-import os
-from pathlib import Path
-import pytest
 from app.web_server import STATIC_DIR
 
 

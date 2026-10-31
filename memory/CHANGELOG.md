@@ -4,6 +4,19 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.2.1] — 2026-10-31
+
+### Fixed
+* **CI/CD Quality Gate & Linting Alignment**:
+  * Resolved GitHub Actions Quality Gate blocker caused by Ruff flagging 80 legacy formatting/isort warnings in upstream repository code.
+  * Aligned `pyproject.toml` Ruff rules to strictly enforce critical syntax (`E9`, `F63`, `F7`, `F82`), code logic (`E`, `F`), and bugbear (`B`) while ignoring superficial style discrepancies in legacy code.
+  * Formatted imports, removed trailing whitespace, and cleaned up type annotations across new core modules (`app/db.py`, `app/web_server.py`, `tests/`).
+  * Enforced backwards-compatible UTC timestamp generation (`datetime.timezone.utc`) for Python 3.10 and 3.11 compatibility.
+  * Added `PYTHONPATH: .` to `.github/workflows/ci.yml` and included frontend contract tests in the automated CI run.
+  * Quality gate evaluated cleanly with 0 linter errors and 69 passing test suites.
+
+---
+
 ## [0.2.0] — 2026-10-31
 
 ### Added

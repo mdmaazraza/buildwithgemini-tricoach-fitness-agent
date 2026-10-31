@@ -8,13 +8,12 @@ Tests:
 """
 
 import pytest
+
 from app.fitness_math import (
     calculate_bmr,
-    calculate_tdee,
     calculate_daily_calories_and_macros,
-    recommend_workout,
+    calculate_tdee,
 )
-from app.db import WorkoutDatabase
 
 
 class TestCalorieInputValidation:

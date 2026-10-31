@@ -7,8 +7,6 @@ Tests:
 - Handling of non-existent records
 """
 
-import pytest
-from app.db import WorkoutDatabase
 
 
 class TestDatabaseIntegration:

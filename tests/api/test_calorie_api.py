@@ -7,7 +7,6 @@ Tests:
 - Boundary condition and edge case testing
 """
 
-import pytest
 from fastapi import status
 
 

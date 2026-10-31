@@ -8,11 +8,12 @@ Guarantees that new feature developments, refactorings, or updates do not regres
 5. Chat API response format compatibility
 """
 
-import pytest
 import json
+
+import pytest
+
 from app.fitness_math import (
     calculate_bmr,
-    calculate_tdee,
     calculate_daily_calories_and_macros,
     calculate_training_zones,
     recommend_workout,

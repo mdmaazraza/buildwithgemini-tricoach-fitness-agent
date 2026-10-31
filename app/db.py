@@ -5,11 +5,11 @@ Supports:
 - Google Cloud Firestore (when explicitly enabled with USE_FIRESTORE=true)
 """
 
+import datetime
 import os
 import sqlite3
-import datetime
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 _use_firestore = False
 _firestore_client = None
@@ -29,7 +29,7 @@ if os.getenv("USE_FIRESTORE", "false").lower() == "true":
 class WorkoutDatabase:
     """Workout database interface supporting SQLite and Firestore."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initializes database. If db_path is ':memory:', keeps a persistent connection for in-memory testing."""
         self.db_path = db_path or os.getenv("SQLITE_DB_PATH", "workouts.db")
         self.use_firestore = _use_firestore and (self.db_path != ":memory:")
@@ -71,7 +71,7 @@ class WorkoutDatabase:
                 ("workout-seed-104", "athlete-01", "Brick", 110, 35.0, 158, "Zone 4 (Race Pace)", "Olympic distance simulation (Bike + Run transition).", "2026-10-31"),
             ]
             cursor.executemany("""
-                INSERT OR IGNORE INTO workouts 
+                INSERT OR IGNORE INTO workouts
                 (workout_id, athlete_id, activity_type, duration_minutes, distance_km, avg_heart_rate, intensity_zone, notes, date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, starter_workouts)
@@ -88,9 +88,9 @@ class WorkoutDatabase:
         intensity_zone: str,
         notes: str,
         athlete_id: str = "athlete-01",
-        workout_id: Optional[str] = None,
-        date_str: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        workout_id: str | None = None,
+        date_str: str | None = None,
+    ) -> dict[str, Any]:
         """Logs a workout and returns the recorded dictionary."""
         if not workout_id:
             workout_id = f"workout-{int(datetime.datetime.now().timestamp() * 1000)}-{uuid.uuid4().hex[:6]}"
@@ -123,7 +123,7 @@ class WorkoutDatabase:
             conn = self._get_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT OR REPLACE INTO workouts 
+                INSERT OR REPLACE INTO workouts
                 (workout_id, athlete_id, activity_type, duration_minutes, distance_km, avg_heart_rate, intensity_zone, notes, date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
@@ -136,7 +136,7 @@ class WorkoutDatabase:
 
         return doc_data
 
-    def list_workouts(self, athlete_id: str = "athlete-01", limit: int = 10) -> List[Dict[str, Any]]:
+    def list_workouts(self, athlete_id: str = "athlete-01", limit: int = 10) -> list[dict[str, Any]]:
         """Retrieves workout logs for an athlete."""
         if limit <= 0:
             return []
@@ -161,7 +161,7 @@ class WorkoutDatabase:
                 conn.close()
             return results
 
-    def get_workout_details(self, workout_id: str) -> Optional[Dict[str, Any]]:
+    def get_workout_details(self, workout_id: str) -> dict[str, Any] | None:
         """Retrieves details of a specific workout log."""
         if self.use_firestore and _firestore_client:
             doc = _firestore_client.collection("workouts").document(workout_id).get()

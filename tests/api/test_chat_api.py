@@ -8,7 +8,6 @@ Tests:
 - Error handling on missing body or invalid JSON (422 Unprocessable Entity)
 """
 
-import pytest
 from fastapi import status
 
 

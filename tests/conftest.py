@@ -2,24 +2,24 @@
 """
 
 import urllib.parse
-import pytest
-from pydantic import ValidationError
-from fastapi import HTTPException
 
-from app.web_server import (
-    app,
-    health_check,
-    chat_endpoint,
-    calculate_calories_endpoint,
-    log_workout_endpoint,
-    list_workouts_endpoint,
-    feedback_endpoint,
-    ChatRequest,
-    CalorieRequest,
-    WorkoutLogRequest,
-    FeedbackRequest,
-)
+import pytest
+from fastapi import HTTPException
+from pydantic import ValidationError
+
 from app.db import WorkoutDatabase
+from app.web_server import (
+    CalorieRequest,
+    ChatRequest,
+    FeedbackRequest,
+    WorkoutLogRequest,
+    calculate_calories_endpoint,
+    chat_endpoint,
+    feedback_endpoint,
+    health_check,
+    list_workouts_endpoint,
+    log_workout_endpoint,
+)
 
 
 class MockResponse:
@@ -41,7 +41,7 @@ class MockResponse:
 class DirectTestClient:
     """Deterministic, lightweight client executing FastAPI handlers without thread deadlock."""
 
-    def get(self, url: str, params: dict = None) -> MockResponse:
+    def get(self, url: str, params: dict | None = None) -> MockResponse:
         parsed = urllib.parse.urlparse(url)
         path = parsed.path
         merged_params = {}
@@ -61,7 +61,7 @@ class DirectTestClient:
             return MockResponse(200, res)
         return MockResponse(404, {"detail": "Not found"})
 
-    def post(self, url: str, json: dict = None) -> MockResponse:
+    def post(self, url: str, json: dict | None = None) -> MockResponse:
         parsed = urllib.parse.urlparse(url)
         path = parsed.path
         json = json or {}

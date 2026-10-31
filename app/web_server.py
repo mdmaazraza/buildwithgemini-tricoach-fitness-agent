@@ -8,24 +8,19 @@ Serves:
 - System health status (/health)
 """
 
-import os
-import json
 import logging
-from typing import Optional, List, Dict, Any
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from app.db import default_db
 from app.fitness_math import (
-    calculate_bmr,
-    calculate_tdee,
     calculate_daily_calories_and_macros,
-    recommend_workout,
 )
-from app.db import default_db, WorkoutDatabase
 
 logger = logging.getLogger("tricoach_server")
 logging.basicConfig(level=logging.INFO)
@@ -44,7 +39,7 @@ STATIC_DIR = BASE_DIR / "frontend" / "static"
 # ---------------- Pydantic Request Models ----------------
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User message text")
-    user_id: Optional[str] = Field("web-user", description="Athlete / User Identifier")
+    user_id: str | None = Field("web-user", description="Athlete / User Identifier")
 
 
 class CalorieRequest(BaseModel):
@@ -53,7 +48,7 @@ class CalorieRequest(BaseModel):
     age: int = Field(..., ge=10, le=120, description="Age in years")
     gender: str = Field(..., description="'male' or 'female'")
     activity_level: str = Field(..., description="sedentary, light, moderate, very_active, extra_active")
-    goal: Optional[str] = Field("maintenance", description="fat_loss, maintenance, lean_bulk, endurance_fuel")
+    goal: str | None = Field("maintenance", description="fat_loss, maintenance, lean_bulk, endurance_fuel")
 
 
 class WorkoutLogRequest(BaseModel):
@@ -62,18 +57,18 @@ class WorkoutLogRequest(BaseModel):
     distance_km: float = Field(..., ge=0, description="Distance in kilometers")
     avg_heart_rate: int = Field(..., gt=30, le=240, description="Average heart rate")
     intensity_zone: str = Field(..., description="Zone 1 to Zone 5 description")
-    notes: Optional[str] = Field("", description="Workout notes or athlete feedback")
-    athlete_id: Optional[str] = Field("athlete-01", description="Athlete identifier")
+    notes: str | None = Field("", description="Workout notes or athlete feedback")
+    athlete_id: str | None = Field("athlete-01", description="Athlete identifier")
 
 
 class FeedbackRequest(BaseModel):
     score: int = Field(..., ge=1, le=5)
-    comment: Optional[str] = Field("")
+    comment: str | None = Field("")
 
 
 # ---------------- API Routes ----------------
 @app.get("/health")
-def health_check() -> Dict[str, str]:
+def health_check() -> dict[str, str]:
     """Service health check endpoint."""
     return {
         "status": "healthy",
@@ -83,7 +78,7 @@ def health_check() -> Dict[str, str]:
 
 
 @app.post("/chat")
-def chat_endpoint(req: ChatRequest) -> Dict[str, Any]:
+def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
     """Chatbot message handler.
     Returns structured parts compliant with index.html renderer:
     {"parts": [{"kind": "text", "text": ...}, {"kind": "a2ui", "data": ...}]}
@@ -131,7 +126,7 @@ def chat_endpoint(req: ChatRequest) -> Dict[str, Any]:
 
 
 @app.post("/api/calories")
-def calculate_calories_endpoint(req: CalorieRequest) -> Dict[str, Any]:
+def calculate_calories_endpoint(req: CalorieRequest) -> dict[str, Any]:
     """Calculates BMR, TDEE, target calories, and macro breakdown."""
     try:
         result = calculate_daily_calories_and_macros(
@@ -144,11 +139,11 @@ def calculate_calories_endpoint(req: CalorieRequest) -> Dict[str, Any]:
         )
         return {"status": "success", "data": result}
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @app.post("/api/workouts")
-def log_workout_endpoint(req: WorkoutLogRequest) -> Dict[str, Any]:
+def log_workout_endpoint(req: WorkoutLogRequest) -> dict[str, Any]:
     """Logs a new workout."""
     try:
         record = default_db.log_workout(
@@ -162,18 +157,18 @@ def log_workout_endpoint(req: WorkoutLogRequest) -> Dict[str, Any]:
         )
         return {"status": "success", "workout": record}
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @app.get("/api/workouts")
-def list_workouts_endpoint(athlete_id: str = "athlete-01", limit: int = 10) -> Dict[str, Any]:
+def list_workouts_endpoint(athlete_id: str = "athlete-01", limit: int = 10) -> dict[str, Any]:
     """Retrieves workout history for an athlete."""
     workouts = default_db.list_workouts(athlete_id=athlete_id, limit=limit)
     return {"status": "success", "count": len(workouts), "workouts": workouts}
 
 
 @app.post("/feedback")
-def feedback_endpoint(req: FeedbackRequest) -> Dict[str, Any]:
+def feedback_endpoint(req: FeedbackRequest) -> dict[str, Any]:
     """Records user feedback."""
     return {"status": "received", "feedback": req.model_dump()}
 
