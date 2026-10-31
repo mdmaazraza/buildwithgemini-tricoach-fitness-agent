@@ -223,3 +223,8 @@ application_default_credentials.json
 service-account*.json
 # Keep the demo GIF (README embeds it); ignore the large raw recording.
 *.webm
+
+# Local SQLite database & test artifacts
+workouts.db
+.coverage
+htmlcov/

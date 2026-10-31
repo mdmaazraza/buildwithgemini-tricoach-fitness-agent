@@ -1,8 +1,8 @@
+import os
 import time
 from google.cloud import firestore
 
-# Explicit hardcoded GCP Project ID string
-PROJECT_ID = "qwiklabs-gcp-02-c57180f0ec07"
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-02-c57180f0ec07")
 
 db = firestore.Client(project=PROJECT_ID, database="(default)")
 

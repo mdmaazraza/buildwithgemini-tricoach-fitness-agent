@@ -1,0 +1,15 @@
+# Render Blueprint specification for zero-cost hosting with automatic redeployment
+services:
+  - type: web
+    name: tricoach-ai
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.web_server:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GEMINI_API_KEY
+        sync: false

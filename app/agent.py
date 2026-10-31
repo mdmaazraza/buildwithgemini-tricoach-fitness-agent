@@ -42,16 +42,27 @@ from .a2ui_utils import a2ui_callback
 load_dotenv()
 
 # Hardcoded GCP Project ID string (required for Agent Platform compatibility)
-PROJECT_ID = "qwiklabs-gcp-02-c57180f0ec07"
-BUCKET_NAME = "tricoach-media-qwiklabs-gcp-02-c57180f0ec07"
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-02-c57180f0ec07")
+BUCKET_NAME = os.getenv("BUCKET_NAME", "tricoach-media-qwiklabs-gcp-02-c57180f0ec07")
 
-db = firestore.Client(project=PROJECT_ID, database="(default)")
-storage_client = storage.Client(project=PROJECT_ID)
-genai_client_global = genai.Client(
-    vertexai=True,
-    project=PROJECT_ID,
-    location="global",
-)
+try:
+    db = firestore.Client(project=PROJECT_ID, database="(default)")
+except Exception:
+    db = None
+
+try:
+    storage_client = storage.Client(project=PROJECT_ID)
+except Exception:
+    storage_client = None
+
+try:
+    genai_client_global = genai.Client(
+        vertexai=True,
+        project=PROJECT_ID,
+        location="global",
+    )
+except Exception:
+    genai_client_global = None
 
 # Load Agent Engine resource name from deployment_metadata.json if available
 agent_engine_resource_name = None
