@@ -4,6 +4,17 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.3.2] — 2026-10-31
+
+### Fixed
+* **Google AI Studio Model Routing to `gemini-3.5-flash-lite`**:
+  * Identified root cause of fallback echo: Google AI Studio deprecated `gemini-2.0-flash` and `gemini-2.5-flash` for new keys with `404 NOT_FOUND`.
+  * Updated active model target to **`gemini-3.5-flash-lite`** with fallback to `gemini-3.5-flash` and `gemini-flash-latest`.
+  * Verified live connection to Google AI Studio with HTTP/1.1 200 OK: queries (e.g. eggs, roti, curry) receive full, real-time macronutrient and calorie breakdowns in ~2 seconds.
+  * All 69 automated tests continue to pass.
+
+---
+
 ## [0.3.1] — 2026-10-31
 
 ### Fixed

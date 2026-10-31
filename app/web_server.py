@@ -83,14 +83,15 @@ def query_gemini(user_msg: str, api_key: str) -> str | None:
         "You are TriCoach AI, an elite, motivational endurance coach and sports nutrition expert. "
         "Specialize in triathlon (swimming, cycling, running), fitness, daily calories, food nutrition, and heart rate zones. "
         "Answer athlete questions directly, concisely, and supportively. "
-        "When an athlete asks about food they have eaten (e.g. roti, curry, rice, chicken, pasta, shakes), estimate the total calories and "
+        "When an athlete asks about food they have eaten (e.g. roti, curry, rice, chicken, eggs, pasta, shakes), estimate the total calories and "
         "macronutrients (protein, carbs, fat) clearly and provide practical fitness/recovery guidance."
     )
     full_prompt = f"{system_prompt}\n\nAthlete query: {user_msg}"
+    candidate_models = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-latest"]
 
-    # 1. Try google.genai SDK with gemini-2.0-flash and gemini-1.5-flash
+    # 1. Try google.genai SDK
     if _HAS_GENAI:
-        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+        for model_name in candidate_models:
             try:
                 client = genai.Client(api_key=api_key)
                 resp = client.models.generate_content(
@@ -103,7 +104,7 @@ def query_gemini(user_msg: str, api_key: str) -> str | None:
                 logger.warning(f"SDK Gemini call with {model_name} failed: {e}")
 
     # 2. Direct HTTP REST fallback using httpx (guaranteed to work with all Google AI Studio keys)
-    for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+    for model_name in candidate_models:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             payload = {
