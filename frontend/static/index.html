@@ -566,7 +566,7 @@ function bubble(who) {
   const avatar = el("div", "avatar-badge " + (who === "user" ? "user-avatar" : "agent-avatar"), who === "user" ? "👤" : "⚡");
   const content = el("div", "msg-content");
   const name = el("div", "sender-name", who === "user" ? "You" : "TriCoach AI");
-  const b = el("div", "bubble");
+  const b = el("div", "bubble " + who);
 
   content.appendChild(name);
   content.appendChild(b);

@@ -95,9 +95,13 @@ class TestPlaywrightE2E:
                 page.fill("#input", "Tell me about triathlon training zones")
                 page.click("#form button[type='submit']")
 
-                # Wait for response bubble to appear
-                page.wait_for_selector(".bubble.agent", timeout=10000)
-                agent_bubbles = page.locator(".bubble.agent")
+                # Wait for agent response message to appear
+                page.wait_for_selector(".msg.agent", timeout=10000)
+                agent_msgs = page.locator(".msg.agent")
+                assert agent_msgs.count() >= 1
+
+                # Verify agent bubble is rendered
+                agent_bubbles = page.locator(".msg.agent .bubble")
                 assert agent_bubbles.count() >= 1
             finally:
                 browser.close()

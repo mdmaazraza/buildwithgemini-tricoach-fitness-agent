@@ -4,6 +4,17 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.2.2] — 2026-10-31
+
+### Fixed
+* **Playwright E2E Chat Flow Selector Alignment**:
+  * Resolved `TimeoutError` in `tests/e2e/test_playwright_e2e.py::test_chat_message_flow` on GitHub Actions Linux runner.
+  * Corrected DOM selector mismatch: `frontend/static/index.html` wraps messages in `<div class="msg agent">` with child `<div class="bubble">`.
+  * Updated `bubble(who)` in `index.html` to append `who` class to the bubble (`bubble agent` / `bubble user`) and updated the E2E test to locate `.msg.agent .bubble` and `.msg.agent`.
+  * Added `pytest-asyncio` dependency to `regression-tests` and `e2e-playwright-tests` CI jobs to eliminate `PytestConfigWarning`.
+
+---
+
 ## [0.2.1] — 2026-10-31
 
 ### Fixed
