@@ -4,6 +4,17 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.3.0] — 2026-10-31
+
+### Added
+* **Phase B Live Web & Google AI Studio Integration**:
+  * Integrated Google AI Studio `GEMINI_API_KEY` into `app/web_server.py` using `google.genai`.
+  * Real-time dynamic response generation powered by `gemini-2.5-flash` for athlete queries when `GEMINI_API_KEY` is configured in production environment variables.
+  * Graceful zero-latency fallback to built-in rules when running in offline testing environments.
+  * Prepared Render.com zero-cost continuous deployment configuration (`render.yaml`).
+
+---
+
 ## [0.2.2] — 2026-10-31
 
 ### Fixed

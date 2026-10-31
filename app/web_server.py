@@ -9,6 +9,7 @@ Serves:
 """
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,12 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+
+try:
+    from google import genai
+    _HAS_GENAI = True
+except ImportError:
+    _HAS_GENAI = False
 
 from app.db import default_db
 from app.fitness_math import (
@@ -117,6 +124,25 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
                 "text": "You haven't logged any workouts yet. Tell me what workout you completed today (e.g., 'Log 45 min run, 8 km, 150 bpm')!"
             })
     else:
+        # Dynamic Google Gemini LLM Integration when GEMINI_API_KEY is configured
+        api_key = os.getenv("GEMINI_API_KEY")
+        if api_key and _HAS_GENAI:
+            try:
+                client = genai.Client(api_key=api_key)
+                prompt = (
+                    "You are TriCoach AI, an elite, motivational endurance coach specializing in triathlon (swimming, cycling, running), "
+                    "heart rate training zones (Karvonen), and sports nutrition. Provide concise, expert, practical advice formatted cleanly.\n\n"
+                    f"Athlete message: {msg}"
+                )
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                )
+                if response and response.text:
+                    return {"parts": [{"kind": "text", "text": response.text.strip()}]}
+            except Exception as e:
+                logger.warning(f"Gemini API call failed, falling back to offline coach: {e}")
+
         parts.append({
             "kind": "text",
             "text": f"Coach TriCoach here! I received: '{msg}'. I'm ready to track your swim, bike, run sessions, calculate heart rate zones, and dial in your nutrition."

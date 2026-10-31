@@ -3,7 +3,7 @@
 > **LAST VERIFIED**: 2026-10-31  
 > **CURRENT BRANCH**: `main`  
 > **BUILD HEALTH**: ✅ ALL TESTS PASSING (69 / 69 passing in 0.26s, 3 E2E Playwright tests aligned, Ruff Linter: 0 errors)  
-> **DEPLOYMENT READINESS**: ✅ 100% READY FOR FREE WEB HOSTING (Render / Hugging Face / Docker)
+> **DEPLOYMENT READINESS**: ✅ 100% READY FOR FREE WEB HOSTING (Render.com + Google AI Studio Gemini 2.5 Flash)
 
 ---
 
