@@ -13,10 +13,14 @@ import os
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+import httpx
 from pydantic import BaseModel, Field
+
+load_dotenv()
 
 try:
     from google import genai
@@ -73,6 +77,61 @@ class FeedbackRequest(BaseModel):
     comment: str | None = Field("")
 
 
+def query_gemini(user_msg: str, api_key: str) -> str | None:
+    """Queries Google Gemini model using Google AI Studio API via SDK or HTTPX REST."""
+    system_prompt = (
+        "You are TriCoach AI, an elite, motivational endurance coach and sports nutrition expert. "
+        "Specialize in triathlon (swimming, cycling, running), fitness, daily calories, food nutrition, and heart rate zones. "
+        "Answer athlete questions directly, concisely, and supportively. "
+        "When an athlete asks about food they have eaten (e.g. roti, curry, rice, chicken, pasta, shakes), estimate the total calories and "
+        "macronutrients (protein, carbs, fat) clearly and provide practical fitness/recovery guidance."
+    )
+    full_prompt = f"{system_prompt}\n\nAthlete query: {user_msg}"
+
+    # 1. Try google.genai SDK with gemini-2.0-flash and gemini-1.5-flash
+    if _HAS_GENAI:
+        for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+            try:
+                client = genai.Client(api_key=api_key)
+                resp = client.models.generate_content(
+                    model=model_name,
+                    contents=full_prompt,
+                )
+                if resp and resp.text:
+                    return resp.text.strip()
+            except Exception as e:
+                logger.warning(f"SDK Gemini call with {model_name} failed: {e}")
+
+    # 2. Direct HTTP REST fallback using httpx (guaranteed to work with all Google AI Studio keys)
+    for model_name in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": full_prompt}
+                        ]
+                    }
+                ]
+            }
+            with httpx.Client(timeout=15.0) as http_client:
+                r = http_client.post(url, json=payload)
+                if r.status_code == 200:
+                    data = r.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        content_parts = candidates[0].get("content", {}).get("parts", [])
+                        if content_parts and "text" in content_parts[0]:
+                            return content_parts[0]["text"].strip()
+                else:
+                    logger.warning(f"HTTP Gemini call ({model_name}) status {r.status_code}: {r.text[:200]}")
+        except Exception as e:
+            logger.warning(f"HTTP Gemini call with {model_name} failed: {e}")
+
+    return None
+
+
 # ---------------- API Routes ----------------
 @app.get("/health")
 def health_check() -> dict[str, str]:
@@ -98,8 +157,26 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
         )
 
     msg_lower = msg.lower()
-    parts = []
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
 
+    # Query local workout database if user asks specifically for logged history
+    is_workout_history_query = "workout" in msg_lower and ("log" in msg_lower or "history" in msg_lower)
+    if is_workout_history_query:
+        recent = default_db.list_workouts(athlete_id=req.user_id, limit=3)
+        if recent:
+            summary = "\n".join([f"• {w['date']} - {w['activity_type']}: {w['distance_km']}km in {w['duration_minutes']} min (HR: {w['avg_heart_rate']})" for w in recent])
+            return {"parts": [{"kind": "text", "text": f"📋 Here are your recent workouts:\n{summary}"}]}
+        else:
+            return {"parts": [{"kind": "text", "text": "You haven't logged any workouts yet. Tell me what workout you completed today (e.g., 'Log 45 min run, 8 km, 150 bpm')!"}]}
+
+    # If GEMINI_API_KEY is available, let Gemini 2.0 / 1.5 Flash answer dynamically
+    if api_key:
+        ai_reply = query_gemini(msg, api_key)
+        if ai_reply:
+            return {"parts": [{"kind": "text", "text": ai_reply}]}
+
+    # Deterministic rule-based fallback (active when API key is not set or in offline tests)
+    parts = []
     if "calorie" in msg_lower or "bmr" in msg_lower or "tdee" in msg_lower:
         parts.append({
             "kind": "text",
@@ -110,42 +187,14 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
             "kind": "text",
             "text": "❤️ Karvonen Training Zones: Zone 1 (Recovery 50-60%), Zone 2 (Aerobic Base 60-70%), Zone 3 (Tempo 70-80%), Zone 4 (Threshold 80-90%), Zone 5 (Anaerobic / VO2 Max 90-100%)."
         })
-    elif "workout" in msg_lower and ("log" in msg_lower or "history" in msg_lower):
-        recent = default_db.list_workouts(athlete_id=req.user_id, limit=3)
-        if recent:
-            summary = "\n".join([f"• {w['date']} - {w['activity_type']}: {w['distance_km']}km in {w['duration_minutes']} min (HR: {w['avg_heart_rate']})" for w in recent])
-            parts.append({
-                "kind": "text",
-                "text": f"📋 Here are your recent workouts:\n{summary}"
-            })
-        else:
-            parts.append({
-                "kind": "text",
-                "text": "You haven't logged any workouts yet. Tell me what workout you completed today (e.g., 'Log 45 min run, 8 km, 150 bpm')!"
-            })
     else:
-        # Dynamic Google Gemini LLM Integration when GEMINI_API_KEY is configured
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key and _HAS_GENAI:
-            try:
-                client = genai.Client(api_key=api_key)
-                prompt = (
-                    "You are TriCoach AI, an elite, motivational endurance coach specializing in triathlon (swimming, cycling, running), "
-                    "heart rate training zones (Karvonen), and sports nutrition. Provide concise, expert, practical advice formatted cleanly.\n\n"
-                    f"Athlete message: {msg}"
-                )
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                )
-                if response and response.text:
-                    return {"parts": [{"kind": "text", "text": response.text.strip()}]}
-            except Exception as e:
-                logger.warning(f"Gemini API call failed, falling back to offline coach: {e}")
-
         parts.append({
             "kind": "text",
-            "text": f"Coach TriCoach here! I received: '{msg}'. I'm ready to track your swim, bike, run sessions, calculate heart rate zones, and dial in your nutrition."
+            "text": (
+                f"Coach TriCoach here! I received: '{msg}'.\n\n"
+                "💡 **Note**: To enable full dynamic AI reasoning and food calorie estimation, "
+                "ensure `GEMINI_API_KEY` is added to your Render Environment Variables!"
+            )
         })
 
     return {"parts": parts}

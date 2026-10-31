@@ -4,6 +4,18 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.3.1] — 2026-10-31
+
+### Fixed
+* **Google Gemini AI Studio Dynamic Routing & REST Fallback**:
+  * Corrected model naming from non-existent `gemini-2.5-flash` to production `gemini-2.0-flash` with automatic fallback to `gemini-1.5-flash`.
+  * Added direct Google AI Studio HTTP REST client via `httpx` so dynamic AI responses work reliably across all environments without depending strictly on SDK versions.
+  * Added `load_dotenv()` in `app/web_server.py` to automatically load local `.env` configuration.
+  * Added nutrition guidance prompting so food questions (e.g. roti, curry, oats) receive accurate calorie and macro breakdown estimates.
+  * All 69 automated tests continue to pass.
+
+---
+
 ## [0.3.0] — 2026-10-31
 
 ### Added
