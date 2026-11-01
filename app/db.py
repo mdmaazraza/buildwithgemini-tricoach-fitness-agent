@@ -354,15 +354,20 @@ class WorkoutDatabase:
             res = dict(row)
         else:
             now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            # If measurements already exist for this athlete, use the latest logged weight
+            cursor.execute("SELECT weight_kg FROM body_measurements WHERE athlete_id = ? ORDER BY date DESC, created_at DESC LIMIT 1", (athlete_id,))
+            meas_row = cursor.fetchone()
+            starting_wt = float(meas_row[0]) if meas_row else 72.0
+
             res = {
                 "athlete_id": athlete_id,
                 "age": 28,
                 "height_cm": 175.0,
-                "current_weight_kg": 72.0,
+                "current_weight_kg": starting_wt,
                 "sex": "male",
                 "activity_level": "moderate",
                 "goal": "maintenance",
-                "target_weight_kg": 70.0,
+                "target_weight_kg": starting_wt,
                 "preferred_units": "metric",
                 "target_rate_change": 0.5,
                 "updated_at": now_iso,
@@ -756,11 +761,19 @@ class WorkoutDatabase:
         ))
 
         # Keep current profile weight synced to newest measurement
-        cursor.execute("""
-            UPDATE user_profiles
-            SET current_weight_kg = ?, updated_at = ?
-            WHERE athlete_id = ?
-        """, (doc_data["weight_kg"], now_iso, athlete_id))
+        cursor.execute("SELECT athlete_id FROM user_profiles WHERE athlete_id = ?", (athlete_id,))
+        if cursor.fetchone():
+            cursor.execute("""
+                UPDATE user_profiles
+                SET current_weight_kg = ?, updated_at = ?
+                WHERE athlete_id = ?
+            """, (doc_data["weight_kg"], now_iso, athlete_id))
+        else:
+            cursor.execute("""
+                INSERT INTO user_profiles
+                (athlete_id, age, height_cm, current_weight_kg, sex, activity_level, goal, target_weight_kg, preferred_units, target_rate_change, updated_at)
+                VALUES (?, 28, 175.0, ?, 'male', 'moderate', 'maintenance', ?, 'metric', 0.5, ?)
+            """, (athlete_id, doc_data["weight_kg"], doc_data["weight_kg"], now_iso))
 
         conn.commit()
         if self._mem_conn is None:

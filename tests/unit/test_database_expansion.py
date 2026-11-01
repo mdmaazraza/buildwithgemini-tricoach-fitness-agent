@@ -164,6 +164,12 @@ class TestBodyMeasurementsCRUD:
         updated_prof = test_db.get_profile("ath-meas")
         assert updated_prof["current_weight_kg"] == 73.8
 
+    def test_log_measurement_without_prior_profile_initializes_profile_weight(self, test_db):
+        # Direct measurement without prior save_profile() call
+        test_db.log_measurement("ath-newbie", "2026-11-01", weight_kg=78.4, waist_cm=85.0)
+        prof = test_db.get_profile("ath-newbie")
+        assert prof["current_weight_kg"] == 78.4
+
     def test_measurement_validation(self, test_db):
         with pytest.raises(ValueError, match="Invalid weight"):
             test_db.log_measurement("ath", "2026-10-31", 10.0)
