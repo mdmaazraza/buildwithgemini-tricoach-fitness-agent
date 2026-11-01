@@ -45,6 +45,15 @@ class TestFrontendContracts:
             assert "kind" in part
             assert part["kind"] in ("text", "a2ui", "file")
 
+    def test_email_preview_gui_and_favicon_contracts(self):
+        index_file = STATIC_DIR / "index.html"
+        content = index_file.read_text(encoding="utf-8")
+        assert 'favicon.svg' in content, "Favicon SVG link missing from index.html"
+        assert 'id="rep-preview-frame"' in content, "Visual email iframe preview container missing"
+        assert 'id="rep-preview-card"' in content, "Email preview card container missing"
+        assert "switchPreviewMode" in content, "switchPreviewMode JavaScript handler missing"
+        assert "displayReportPreview" in content, "displayReportPreview JavaScript handler missing"
+
     def test_calorie_form_contract(self, test_client):
         form_payload = {
             "weight_kg": 70.0,

@@ -214,7 +214,12 @@ def query_gemini(user_msg: str, api_key: str, system_override: str | None = None
         "macronutrients (protein, carbs, fat) clearly and provide practical fitness/recovery guidance."
     )
     full_prompt = f"{system_prompt}\n\nAthlete query: {user_msg}"
-    candidate_models = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-flash-latest"]
+    candidate_models = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+    ]
 
     # 1. Try google.genai SDK
     if _HAS_GENAI:
@@ -231,20 +236,24 @@ def query_gemini(user_msg: str, api_key: str, system_override: str | None = None
                 logger.warning(f"SDK Gemini call with {model_name} failed: {e}")
 
     # 2. Direct HTTP REST fallback using httpx
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key,
+    }
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": full_prompt}
+                ]
+            }
+        ]
+    }
     for model_name in candidate_models:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-            payload = {
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": full_prompt}
-                        ]
-                    }
-                ]
-            }
             with httpx.Client(timeout=15.0) as http_client:
-                r = http_client.post(url, json=payload)
+                r = http_client.post(url, headers=headers, json=payload)
                 if r.status_code == 200:
                     data = r.json()
                     candidates = data.get("candidates", [])
@@ -756,6 +765,20 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
         else:
             return {"parts": [{"kind": "text", "text": "You haven't logged any workouts yet. Tell me what workout you completed today (e.g., 'Log 45 min run, 8 km, 150 bpm')!"}]}
 
+    # Heart Rate & Karvonen Training Zones Query
+    if "zone" in msg_lower or "heart rate" in msg_lower or "karvonen" in msg_lower:
+        return {"parts": [{
+            "kind": "text",
+            "text": "❤️ Karvonen Training Zones: Zone 1 (Recovery 50-60%), Zone 2 (Aerobic Base 60-70%), Zone 3 (Tempo 70-80%), Zone 4 (Threshold 80-90%), Zone 5 (Anaerobic / VO2 Max 90-100%)."
+        }]}
+
+    # Calorie Needs, BMR & TDEE Calculation Query
+    if "bmr" in msg_lower or "tdee" in msg_lower or ("calculate" in msg_lower and "calorie" in msg_lower) or "daily calorie needs" in msg_lower:
+        return {"parts": [{
+            "kind": "text",
+            "text": "🏊🚴🏃 I can calculate your exact BMR, TDEE, and daily endurance macronutrient targets! Send your weight, height, age, gender, and activity level, or call /api/calories directly."
+        }]}
+
     # Grounding check: Did user ask about their current/historical records, calories, protein, deficit, or weight?
     is_stats_query = any(k in msg_lower for k in [
         "how many calories", "how much protein", "my deficit", "my calorie", "my weight",
@@ -810,6 +833,53 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
         )
         return {"parts": [{"kind": "text", "text": reply}]}
 
+    # Food & Nutrition Intake Query check (e.g. "I ate 2 eggs", "food calories", "count nutrients")
+    food_verbs = bool(re.search(r"\b(eaten|ate|eating|have had|had for|consumed|drinking|drank)\b", msg_lower))
+    food_nouns = bool(re.search(r"\b(egg|eggs|roti|rotis|chapati|rice|chicken|dal|daal|curry|oats|oatmeal|banana|apple|bread|toast|yogurt|shake)\b", msg_lower))
+    nutrition_queries = bool(re.search(r"\b(count\s+calor?ies?|count\s+nutrients?|count\s+macros?|nutrition\s+for|calor?ies\s+for|protein\s+in|macros\s+in)\b", msg_lower))
+
+    is_food_query = food_verbs or nutrition_queries or (food_nouns and any(c in msg_lower for c in ["calorie", "caloire", "nutrient", "macro", "protein", "carb", "fat", "count"]))
+
+    if is_food_query:
+        if api_key:
+            food_prompt = (
+                "You are TriCoach AI, an elite endurance coach and sports nutrition expert. "
+                "The athlete is asking about food intake, calories, or nutritional values. "
+                "1. Give estimated calories, protein (g), carbohydrates (g), and fat (g) for each mentioned food item clearly using bullet points. "
+                "2. Provide total calories and macronutrient totals. "
+                "3. Offer a brief, encouraging coaching tip on how this supports endurance training, recovery, or body composition. "
+                "4. Remind them they can permanently log this into their Daily Fitness Journal tab."
+            )
+            ai_reply = query_gemini(msg, api_key, system_override=food_prompt)
+            if ai_reply:
+                return {"parts": [{"kind": "text", "text": ai_reply}]}
+
+        # Deterministic fallback parsing using built-in food nutrition knowledge
+        parsed_food = parse_natural_language_food(msg)
+        items = parsed_food.get("items", [])
+        first_clarification = parsed_food.get("clarifications_needed", [""])[0] if parsed_food.get("clarifications_needed") else ""
+        if items and "Uncertain nutritional composition" not in first_clarification:
+            total_cal = sum(it["calories"] for it in items)
+            total_p = sum(it["protein_g"] for it in items)
+            total_c = sum(it["carbs_g"] for it in items)
+            total_f = sum(it["fat_g"] for it in items)
+
+            item_lines = "\n".join([
+                f"• **{it['food_name']}** ({it['quantity']:g} {it['unit']}): {it['calories']} kcal | Protein: {it['protein_g']}g | Carbs: {it['carbs_g']}g | Fat: {it['fat_g']}g"
+                for it in items
+            ])
+
+            food_reply = (
+                f"🍳 **Nutritional Breakdown for Your Meal:**\n\n"
+                f"{item_lines}\n\n"
+                f"📊 **Meal Totals:**\n"
+                f"• **Total Calories**: {round(total_cal, 1)} kcal\n"
+                f"• **Protein**: {round(total_p, 1)}g | **Carbohydrates**: {round(total_c, 1)}g | **Fat**: {round(total_f, 1)}g\n\n"
+                f"💡 *Coach Tip*: Excellent fuel choice! High-quality protein supports muscle recovery and healthy satiety. "
+                f"You can record this directly into your **Daily Fitness Journal** tab under Food Intake to track your daily macronutrient targets."
+            )
+            return {"parts": [{"kind": "text", "text": food_reply}]}
+
     # Standard general queries
     if api_key:
         ai_reply = query_gemini(msg, api_key)
@@ -829,13 +899,20 @@ def chat_endpoint(req: ChatRequest) -> dict[str, Any]:
             "text": "❤️ Karvonen Training Zones: Zone 1 (Recovery 50-60%), Zone 2 (Aerobic Base 60-70%), Zone 3 (Tempo 70-80%), Zone 4 (Threshold 80-90%), Zone 5 (Anaerobic / VO2 Max 90-100%)."
         })
     else:
-        parts.append({
-            "kind": "text",
-            "text": (
+        if api_key:
+            reply_text = (
                 f"Coach TriCoach here! I received: '{msg}'.\n\n"
-                "💡 **Note**: To enable full dynamic AI reasoning and food calorie estimation, "
+                "(AI engine was temporarily unable to generate a response. Please try again in a moment, or visit the Daily Fitness Journal tab to log activities and meals directly!)"
+            )
+        else:
+            reply_text = (
+                f"Coach TriCoach here! I received: '{msg}'.\n\n"
+                "💡 **Note**: To enable dynamic AI reasoning and food calorie estimation, "
                 "ensure `GEMINI_API_KEY` is added to your Render Environment Variables!"
             )
+        parts.append({
+            "kind": "text",
+            "text": reply_text
         })
 
     return {"parts": parts}
@@ -892,6 +969,13 @@ def feedback_endpoint(req: FeedbackRequest) -> dict[str, Any]:
 # ---------------- Frontend Static Mount ----------------
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    def serve_favicon():
+        favicon_path = STATIC_DIR / "favicon.svg"
+        if favicon_path.exists():
+            return FileResponse(favicon_path, media_type="image/svg+xml")
+        return FileResponse(STATIC_DIR / "index.html")
 
     @app.get("/")
     def serve_index():

@@ -60,6 +60,15 @@ class TestHealthAndChatApi:
         response = test_client.post("/chat", json=payload)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+    def test_chat_food_intake_natural_language_breakdown(self, test_client):
+        payload = {"message": "i Have eaten 2 boiled egg today till now can count caloires and nutrients for me"}
+        response = test_client.post("/chat", json=payload)
+        assert response.status_code == status.HTTP_200_OK
+        reply = response.json()["parts"][0]["text"]
+        assert "Boiled Eggs" in reply
+        assert "144" in reply
+        assert "Protein" in reply
+
     def test_chat_invalid_payload_type_returns_422(self, test_client):
         payload = {"message": 12345}  # should be string
         response = test_client.post("/chat", json=payload)

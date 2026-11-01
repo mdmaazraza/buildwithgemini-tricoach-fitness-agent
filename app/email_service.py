@@ -2,12 +2,13 @@
 
 Implements:
 1. Daily and weekly fitness progress report generation (plain text & HTML).
-2. Resend API dispatch (Free plan: 3,000 emails/mo, 100/day, verified sender onboarding@resend.dev).
-3. SMTP fallback dispatch with SSL/TLS encryption.
-4. Safe offline dry-run / simulation mode when email credentials are not configured.
-5. Email verification token generation and dispatch.
-6. User consent checking and delivery audit logging into the database.
-7. Strict credential security: never hardcodes credentials or exposes secrets.
+2. Bulletproof, high-contrast HTML templates optimized for Gmail, Apple Mail, Outlook, and mobile.
+3. Resend API dispatch (Free plan: 3,000 emails/mo, 100/day, verified sender onboarding@resend.dev).
+4. SMTP fallback dispatch with SSL/TLS encryption.
+5. Safe offline dry-run / simulation mode when email credentials are not configured.
+6. Email verification token generation and dispatch.
+7. User consent checking and delivery audit logging into the database.
+8. Strict credential security: never hardcodes credentials or exposes secrets.
 """
 
 import email.message
@@ -116,7 +117,7 @@ def generate_progress_report_content(
     period: str = "daily",
     db=None,
 ) -> dict[str, str]:
-    """Generates comprehensive plain text and HTML reports based on actual database records."""
+    """Generates comprehensive plain text and high-contrast, email-client compatible HTML reports."""
     active_db = db or default_db
     profile = active_db.get_profile(athlete_id)
 
@@ -217,80 +218,175 @@ PHYSIOLOGICAL INTEGRITY NOTICE
 Day-to-day weight fluctuations on the bathroom scale reflect shifts in total body water, glycogen stores, and digestive transit time rather than true changes in adipose or muscular tissue. Calorie values and energy calculations carry standard physiological estimation variance (±10-15%).
 """
 
-        html_content = f"""<!DOCTYPE html>
-<html>
+        balance_bg = "#dcfce7" if weekly_net <= 0 else "#ffedd5"
+        balance_color = "#166534" if weekly_net <= 0 else "#9a3412"
+
+        html_content = f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 20px; }}
-  .container {{ max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
-  .header {{ background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 24px; text-align: center; }}
-  .header h1 {{ margin: 0 0 6px; font-size: 20px; font-weight: 700; }}
-  .header p {{ margin: 0; font-size: 14px; opacity: 0.85; }}
-  .section {{ padding: 20px; border-bottom: 1px solid #f1f5f9; }}
-  .section h2 {{ font-size: 14px; color: #f97316; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }}
-  .metric-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }}
-  .metric-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }}
-  .metric-val {{ font-size: 18px; font-weight: 700; color: #0f172a; }}
-  .metric-lbl {{ font-size: 12px; color: #64748b; margin-top: 2px; }}
-  .badge {{ display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #ffedd5; color: #ea580c; }}
-  .disclaimer {{ background: #f1f5f9; padding: 16px; font-size: 11px; color: #64748b; line-height: 1.5; }}
-</style>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{subject}</title>
 </head>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>🏊🚴🏃 TriCoach AI Weekly Digest</h1>
-    <p>Weekly Performance Review &bull; {start_date} to {today_str}</p>
-  </div>
+<body style="margin:0; padding:24px 0; background-color:#f1f5f9; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:14px; border:1px solid #e2e8f0; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="background-color:#0f172a; padding:28px 24px; text-align:center;">
+              <div style="font-size:28px; line-height:1; margin-bottom:8px;">🏊🚴🏃</div>
+              <h1 style="margin:0 0 6px; font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.3px;">TriCoach AI Weekly Digest</h1>
+              <p style="margin:0; font-size:14px; color:#cbd5e1;">Performance Summary &bull; {start_date} to {today_str}</p>
+            </td>
+          </tr>
 
-  <div class="section">
-    <h2>Weekly Energy Balance</h2>
-    <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-val">{round(total_cals_in)} kcal</div>
-        <div class="metric-lbl">Total Consumed (Avg {avg_cals_in}/day)</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-val">{round(weekly_burn)} kcal</div>
-        <div class="metric-lbl">Total Burned (BMR + Exercise)</div>
-      </div>
-    </div>
-    <p style="text-align: center; margin: 8px 0 0; font-weight: 600;">
-      Weekly Net Balance: <span class="badge">{net_sign}{weekly_net} kcal</span>
-    </p>
-  </div>
+          <!-- Athlete Goal Banner -->
+          <tr>
+            <td style="background-color:#f8fafc; padding:12px 24px; border-bottom:1px solid #e2e8f0; font-size:13px; color:#64748b;">
+              <strong>Athlete:</strong> {athlete_id} &nbsp;|&nbsp; <strong>Goal:</strong> <span style="text-transform:capitalize; color:#0f172a; font-weight:600;">{profile.get('goal', 'maintenance').replace('_', ' ')}</span>
+            </td>
+          </tr>
 
-  <div class="section">
-    <h2>Daily Average Macronutrients</h2>
-    <div class="metric-grid">
-      <div class="metric-card"><div class="metric-val">{avg_protein}g</div><div class="metric-lbl">Avg Protein / Day</div></div>
-      <div class="metric-card"><div class="metric-val">{avg_carbs}g</div><div class="metric-lbl">Avg Carbs / Day</div></div>
-      <div class="metric-card"><div class="metric-val">{avg_fat}g</div><div class="metric-lbl">Avg Fats / Day</div></div>
-      <div class="metric-card"><div class="metric-val">{len(all_foods)}</div><div class="metric-lbl">Logged Food Items</div></div>
-    </div>
-  </div>
+          <!-- Section 1: Energy & Calorie Balance -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">🔥 Weekly Energy & Calorie Balance</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#0f172a;">{round(total_cals_in):,} <span style="font-size:14px; font-weight:500;">kcal</span></div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:4px;">Total Consumed</div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:2px;">(Avg {avg_cals_in} kcal/day)</div>
+                  </td>
+                  <td width="4%">&nbsp;</td>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#0f172a;">{round(weekly_burn):,} <span style="font-size:14px; font-weight:500;">kcal</span></div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:4px;">Total Expended</div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:2px;">(BMR + Exercise Burn)</div>
+                  </td>
+                </tr>
+              </table>
 
-  <div class="section">
-    <h2>Weekly Workout Volume</h2>
-    <div class="metric-grid">
-      <div class="metric-card"><div class="metric-val">{len(all_acts)} sessions</div><div class="metric-lbl">Completed Workouts</div></div>
-      <div class="metric-card"><div class="metric-val">{round(total_act_mins / 60, 1)} hrs</div><div class="metric-lbl">Total Training Time</div></div>
-      <div class="metric-card"><div class="metric-val">{total_act_dist} km</div><div class="metric-lbl">Total Distance</div></div>
-      <div class="metric-card"><div class="metric-val">{round(total_act_burn)} kcal</div><div class="metric-lbl">Workout Burn</div></div>
-    </div>
-  </div>
+              <div style="margin-top:14px; background-color:{balance_bg}; border-radius:8px; padding:10px 16px; text-align:center; font-size:14px; font-weight:700; color:{balance_color};">
+                Estimated Weekly Net Balance: {net_sign}{weekly_net} kcal
+              </div>
+            </td>
+          </tr>
 
-  <div class="section">
-    <h2>Weight Trends & Data Quality</h2>
-    <p style="margin: 4px 0 8px; font-size: 14px;"><strong>Current Weight:</strong> {current_wt} kg (7-Day Rolling Trend: {wt_trend_7d:+} kg)</p>
-    <p style="margin: 4px 0 8px; font-size: 14px;"><strong>Reliability Score:</strong> {conf_score}% &bull; {conf_tier}</p>
-  </div>
+          <!-- Section 2: Daily Average Macronutrients -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">🥗 Daily Average Macronutrients</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #3b82f6; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{avg_protein}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#3b82f6; text-transform:uppercase; margin-top:3px;">Protein / Day</div>
+                  </td>
+                  <td width="3%">&nbsp;</td>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #f59e0b; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{avg_carbs}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#d97706; text-transform:uppercase; margin-top:3px;">Carbs / Day</div>
+                  </td>
+                  <td width="3%">&nbsp;</td>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #ef4444; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{avg_fat}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#dc2626; text-transform:uppercase; margin-top:3px;">Fats / Day</div>
+                  </td>
+                </tr>
+              </table>
+              <div style="font-size:12px; color:#64748b; margin-top:10px; text-align:right;">
+                Total Meals Logged: <strong>{len(all_foods)} items</strong> across the 7-day period
+              </div>
+            </td>
+          </tr>
 
-  <div class="disclaimer">
-    <strong>Physiological Integrity Notice:</strong> Short-term weight fluctuations predominantly reflect total body water, glycogen storage, and digestive transit time rather than true changes in adipose or muscular tissue.
-  </div>
-</div>
+          <!-- Section 3: Training Volume -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">⚡ Completed Training Volume</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="23%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 6px; text-align:center;">
+                    <div style="font-size:18px; font-weight:700; color:#0f172a;">{len(all_acts)}</div>
+                    <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:2px;">Workouts</div>
+                  </td>
+                  <td width="2%">&nbsp;</td>
+                  <td width="23%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 6px; text-align:center;">
+                    <div style="font-size:18px; font-weight:700; color:#0f172a;">{round(total_act_mins / 60, 1)} hrs</div>
+                    <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:2px;">Duration</div>
+                  </td>
+                  <td width="2%">&nbsp;</td>
+                  <td width="23%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 6px; text-align:center;">
+                    <div style="font-size:18px; font-weight:700; color:#0f172a;">{total_act_dist} km</div>
+                    <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:2px;">Distance</div>
+                  </td>
+                  <td width="2%">&nbsp;</td>
+                  <td width="23%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 6px; text-align:center;">
+                    <div style="font-size:18px; font-weight:700; color:#0f172a;">{round(total_act_burn)}</div>
+                    <div style="font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:2px;">Workout kcal</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Section 4: Weight Trends & Confidence -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">📉 Weight Trend & Data Confidence</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#0f172a;">{current_wt} kg</div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:3px;">Latest Scale Weight</div>
+                    <div style="font-size:12px; font-weight:600; color:#2563eb; margin-top:2px;">7-Day Trend: {wt_trend_7d:+} kg</div>
+                  </td>
+                  <td width="4%">&nbsp;</td>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#16a34a;">{conf_score}%</div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:3px;">Data Reliability</div>
+                    <div style="font-size:12px; color:#16a34a; font-weight:600; margin-top:2px;">Rating: {conf_tier}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Section 5: Actionable Recommendations -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 12px; text-transform:uppercase; letter-spacing:0.8px;">🎯 Coaching Action Plan for Next Week</h2>
+              
+              <div style="background-color:#eff6ff; border-left:4px solid #3b82f6; border-radius:6px; padding:14px 16px;">
+                <div style="font-size:13px; line-height:1.6; color:#1e3a8a;">
+                  &bull; <strong>Protein Consistency:</strong> Target {avg_protein}g+ daily to protect lean muscle during endurance training.<br/>
+                  &bull; <strong>Hydration & Electrolytes:</strong> Rehydrate with sodium/potassium within 60 minutes after long cardio sessions.<br/>
+                  &bull; <strong>Weigh-in Protocol:</strong> Step on the scale under standard fasted morning conditions for true trend accuracy.
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer Disclaimer -->
+          <tr>
+            <td style="background-color:#f8fafc; padding:20px 24px; font-size:11px; line-height:1.6; color:#64748b; text-align:center;">
+              <strong>Physiological Note:</strong> Short-term scale weight fluctuations primarily reflect changes in total body hydration, glycogen storage, and digestive transit time rather than true changes in adipose or muscular tissue. BMR and energy calculations utilize validated formulas with standard variance (±10-15%).
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 """
@@ -357,83 +453,131 @@ PHYSIOLOGICAL & SAFETY DISCLAIMER
 Weight changes reflect fluctuations in hydration, glycogen, and gut contents, not solely adipose or muscle tissue.
 """
 
-        html_content = f"""<!DOCTYPE html>
-<html>
+        balance_bg = "#dcfce7" if net_bal <= 0 else "#ffedd5"
+        balance_color = "#166534" if net_bal <= 0 else "#9a3412"
+
+        html_content = f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 20px; }}
-  .container {{ max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
-  .header {{ background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 24px; text-align: center; }}
-  .header h1 {{ margin: 0 0 6px; font-size: 20px; font-weight: 700; }}
-  .header p {{ margin: 0; font-size: 14px; opacity: 0.85; }}
-  .section {{ padding: 20px; border-bottom: 1px solid #f1f5f9; }}
-  .section h2 {{ font-size: 14px; color: #f97316; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }}
-  .metric-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }}
-  .metric-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }}
-  .metric-val {{ font-size: 18px; font-weight: 700; color: #0f172a; }}
-  .metric-lbl {{ font-size: 12px; color: #64748b; margin-top: 2px; }}
-  .badge {{ display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #ffedd5; color: #ea580c; }}
-  .disclaimer {{ background: #f1f5f9; padding: 16px; font-size: 11px; color: #64748b; line-height: 1.5; }}
-</style>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{subject}</title>
 </head>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>TriCoach AI Progress Report</h1>
-    <p>Daily Summary &bull; {today_str}</p>
-  </div>
+<body style="margin:0; padding:24px 0; background-color:#f1f5f9; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:14px; border:1px solid #e2e8f0; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="background-color:#0f172a; padding:28px 24px; text-align:center;">
+              <div style="font-size:28px; line-height:1; margin-bottom:8px;">⚡🏊🚴🏃</div>
+              <h1 style="margin:0 0 6px; font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.3px;">TriCoach AI Daily Progress</h1>
+              <p style="margin:0; font-size:14px; color:#cbd5e1;">Daily Performance Summary &bull; {today_str}</p>
+            </td>
+          </tr>
 
-  <div class="section">
-    <h2>Energy Balance</h2>
-    <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-val">{cals_in} kcal</div>
-        <div class="metric-lbl">Consumed</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-val">{cals_out} kcal</div>
-        <div class="metric-lbl">Total Expenditure</div>
-      </div>
-    </div>
-    <p style="text-align: center; margin: 8px 0 0; font-weight: 600;">
-      Estimated Balance: <span class="badge">{bal_sign}{net_bal} kcal ({energy['balance_status'].upper()})</span>
-    </p>
-  </div>
+          <!-- Athlete Goal Banner -->
+          <tr>
+            <td style="background-color:#f8fafc; padding:12px 24px; border-bottom:1px solid #e2e8f0; font-size:13px; color:#64748b;">
+              <strong>Athlete:</strong> {athlete_id} &nbsp;|&nbsp; <strong>Goal:</strong> <span style="text-transform:capitalize; color:#0f172a; font-weight:600;">{profile.get('goal', 'maintenance').replace('_', ' ')}</span>
+            </td>
+          </tr>
 
-  <div class="section">
-    <h2>Macronutrients</h2>
-    <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-val">{protein}g</div>
-        <div class="metric-lbl">Protein (Target: {target_protein}g)</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-val">{nutrition['totals']['carbs_g']}g</div>
-        <div class="metric-lbl">Carbohydrates</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-val">{nutrition['totals']['fat_g']}g</div>
-        <div class="metric-lbl">Fats</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-val">{nutrition['totals']['fiber_g']}g</div>
-        <div class="metric-lbl">Fiber</div>
-      </div>
-    </div>
-  </div>
+          <!-- Section 1: Energy & Calorie Balance -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">🔥 Today's Energy & Calorie Balance</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:center;">
+                    <div style="font-size:26px; font-weight:700; color:#0f172a;">{cals_in:,} <span style="font-size:14px; font-weight:500;">kcal</span></div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:4px;">Consumed</div>
+                  </td>
+                  <td width="4%">&nbsp;</td>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:center;">
+                    <div style="font-size:26px; font-weight:700; color:#0f172a;">{cals_out:,} <span style="font-size:14px; font-weight:500;">kcal</span></div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:4px;">Total Expenditure</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">(BMR: {energy['bmr']} + Activity: {energy['additional_exercise_burn']})</div>
+                  </td>
+                </tr>
+              </table>
 
-  <div class="section">
-    <h2>Body Trends & Confidence</h2>
-    <p style="margin: 4px 0 8px; font-size: 14px;"><strong>Current Weight:</strong> {current_wt} kg (7-Day Rolling: {wt_trend_7d:+} kg)</p>
-    <p style="margin: 4px 0 8px; font-size: 14px;"><strong>Confidence Rating:</strong> {conf_score}% &bull; {conf_tier}</p>
-    <p style="font-size: 12px; color: #64748b; margin: 4px 0;">{confidence['description']}</p>
-  </div>
+              <div style="margin-top:14px; background-color:{balance_bg}; border-radius:8px; padding:10px 16px; text-align:center; font-size:14px; font-weight:700; color:{balance_color};">
+                Estimated Net Balance: {bal_sign}{net_bal} kcal ({energy['balance_status'].upper()})
+              </div>
+            </td>
+          </tr>
 
-  <div class="disclaimer">
-    <strong>Physiological Integrity Notice:</strong> Calorie balance calculations are mathematical estimations. Scale weight reflects fluid retention, glycogen stores, and digestive transit time in addition to adipose and lean tissue.
-  </div>
-</div>
+          <!-- Section 2: Macronutrients -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">🥗 Macronutrient Adherence</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #3b82f6; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{protein}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#3b82f6; text-transform:uppercase; margin-top:3px;">Protein</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Target: {target_protein}g</div>
+                  </td>
+                  <td width="3%">&nbsp;</td>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #f59e0b; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{nutrition['totals']['carbs_g']}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#d97706; text-transform:uppercase; margin-top:3px;">Carbs</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Fiber: {nutrition['totals']['fiber_g']}g</div>
+                  </td>
+                  <td width="3%">&nbsp;</td>
+                  <td width="31%" style="background-color:#f8fafc; border-top:3px solid #ef4444; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:#0f172a;">{nutrition['totals']['fat_g']}g</div>
+                    <div style="font-size:11px; font-weight:600; color:#dc2626; text-transform:uppercase; margin-top:3px;">Fats</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Healthy Lipids</div>
+                  </td>
+                </tr>
+              </table>
+              <div style="font-size:12px; color:#64748b; margin-top:10px; text-align:right;">
+                Logged: <strong>{nutrition['totals']['item_count']} items</strong> ({nutrition['totals']['verified_items_count']} verified)
+              </div>
+            </td>
+          </tr>
+
+          <!-- Section 3: Body & Workouts -->
+          <tr>
+            <td style="padding:22px 24px; border-bottom:1px solid #f1f5f9;">
+              <h2 style="font-size:13px; font-weight:700; color:#f97316; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.8px;">📉 Scale Weight & Workout Activity</h2>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#0f172a;">{current_wt} kg</div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:3px;">Scale Weight</div>
+                    <div style="font-size:12px; font-weight:600; color:#2563eb; margin-top:2px;">7-Day Trend: {wt_trend_7d:+} kg</div>
+                  </td>
+                  <td width="4%">&nbsp;</td>
+                  <td width="48%" style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center;">
+                    <div style="font-size:22px; font-weight:700; color:#0f172a;">{len(activities)}</div>
+                    <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-top:3px;">Logged Workouts</div>
+                    <div style="font-size:12px; color:#16a34a; font-weight:600; margin-top:2px;">Reliability: {conf_score}%</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer Disclaimer -->
+          <tr>
+            <td style="background-color:#f8fafc; padding:20px 24px; font-size:11px; line-height:1.6; color:#64748b; text-align:center;">
+              <strong>Physiological Note:</strong> Daily weight fluctuations on the bathroom scale reflect shifts in hydration, glycogen storage, and digestive transit time rather than true changes in adipose or muscular tissue. BMR calculations use Mifflin-St Jeor formulas with standard variance (±10-15%).
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 """
@@ -452,7 +596,7 @@ def send_verification_email(
     base_url: str = "http://127.0.0.1:8080",
     db=None,
 ) -> dict[str, Any]:
-    """Sends an email verification link and code to the user."""
+    """Sends a crisp, responsive verification email to confirm user subscription."""
     active_db = db or default_db
     clean_email = recipient_email.strip()
     verify_url = f"{base_url.rstrip('/')}/api/reports/verify?athlete_id={athlete_id}&token={verification_token}"
@@ -468,26 +612,51 @@ Direct Verification Link: {verify_url}
 If you did not request automated progress reports, simply ignore this email.
 """
 
-    html_content = f"""<!DOCTYPE html>
-<html>
+    html_content = f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; padding: 24px; }}
-  .card {{ max-width: 500px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; text-align: center; }}
-  .btn {{ display: inline-block; background: #f97316; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin: 18px 0; }}
-  .code {{ font-family: monospace; font-size: 18px; font-weight: 700; background: #f1f5f9; padding: 8px 16px; border-radius: 6px; letter-spacing: 2px; }}
-</style>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{subject}</title>
 </head>
-<body>
-<div class="card">
-  <h2 style="margin-top:0;">🏊🚴🏃 TriCoach AI</h2>
-  <p>Verify your email address to activate your automated daily and weekly fitness progress reports.</p>
-  <p>Your Verification Code:</p>
-  <p><span class="code">{verification_token}</span></p>
-  <a href="{verify_url}" class="btn" style="color:#ffffff;">Verify Email Address</a>
-  <p style="font-size: 12px; color: #64748b; margin-top: 20px;">If the button does not work, copy and paste this link in your browser:<br>{verify_url}</p>
-</div>
+<body style="margin:0; padding:24px 0; background-color:#f1f5f9; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px; width:100%; background-color:#ffffff; border-radius:14px; border:1px solid #e2e8f0; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.06); text-align:center;">
+          <tr>
+            <td style="background-color:#0f172a; padding:28px 24px;">
+              <div style="font-size:28px; line-height:1; margin-bottom:8px;">⚡</div>
+              <h1 style="margin:0; font-size:20px; font-weight:700; color:#ffffff;">TriCoach AI Email Verification</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 24px;">
+              <p style="margin:0 0 16px; font-size:15px; line-height:1.5; color:#334155;">
+                You are one step away from receiving your automated <strong>daily and weekly fitness progress reports</strong>.
+              </p>
+              
+              <div style="margin:20px 0; background-color:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; padding:14px;">
+                <div style="font-size:12px; font-weight:600; color:#64748b; text-transform:uppercase; margin-bottom:4px;">Your Verification Code:</div>
+                <div style="font-family:monospace; font-size:22px; font-weight:700; color:#f97316; letter-spacing:3px;">{verification_token}</div>
+              </div>
+
+              <div style="margin:24px 0;">
+                <a href="{verify_url}" style="display:inline-block; background-color:#f97316; color:#ffffff; font-size:15px; font-weight:700; text-decoration:none; padding:12px 28px; border-radius:8px; box-shadow:0 2px 8px rgba(249,115,22,0.35);">
+                  Verify Email Address &rarr;
+                </a>
+              </div>
+
+              <p style="margin:20px 0 0; font-size:12px; color:#94a3b8; line-height:1.5;">
+                Or paste this link into your browser:<br/>
+                <a href="{verify_url}" style="color:#2563eb; word-break:break-all;">{verify_url}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 """
@@ -569,4 +738,5 @@ def send_progress_email(
         "subject": report_content["subject"],
         "preview_text": report_content["text"][:300] + "...",
         "text_content": report_content["text"],
+        "html_content": report_content["html"],
     }
