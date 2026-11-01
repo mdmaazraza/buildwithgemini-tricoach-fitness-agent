@@ -4,6 +4,37 @@ All notable changes, architectural modifications, and testing milestones are doc
 
 ---
 
+## [0.4.0] — 2026-11-01
+
+### Added
+* **Phase 1-8 Enhancement: Daily Fitness Tracker, Long-Term Progress Analytics, and Automated Email Reports**:
+  * **Resend Free Email Integration (`app/email_service.py`)**:
+    * Integrated Resend REST API client using 100% free plan (3,000 emails/mo, 100/day, no credit card required).
+    * Verified default sender: `TriCoach AI <onboarding@resend.dev>` with fallback to custom `RESEND_FROM_EMAIL`.
+    * Standard SMTP and safe offline dry-run simulation mode preserved.
+    * Added email verification token dispatch with direct verification link and code.
+    * Added weekly digest report aggregating 7-day calorie totals, daily averages, workout volume, and coaching recommendations.
+  * **Server-Side Background Scheduler (`app/scheduler.py`)**:
+    * Daemon thread checking schedules every 60 seconds; runs independently of browser sessions.
+    * Automatic dispatch of daily summaries (08:00 UTC) and Sunday weekly digests.
+    * Added `/api/reports/cron-trigger` webhook endpoint for free cloud hosting platforms (e.g. Render.com free tier).
+  * **Email Subscription & Consent Schema (`app/db.py`)**:
+    * Created `email_subscriptions` table capturing email, verification status, verification token, explicit user consent, and report frequency.
+  * **Web Endpoints & Modern Lifespan (`app/web_server.py`)**:
+    * Endpoints: `/api/reports/subscription` (GET & POST), `/api/reports/verify` (GET & POST), `/api/reports/cron-trigger` (POST).
+    * Migrated startup/teardown to FastAPI `lifespan` context manager.
+  * **Frontend UI Enhancements (`frontend/static/index.html`)**:
+    * Added automated email subscription card with consent checkbox, frequency selector, inline verification token entry, live report preview, and delivery audit log with provider tag.
+    * Added guide explaining how to hook up cron-job.org / GitHub Actions for Render.com free tier.
+  * **Git Feature Branch**: Created and isolated all changes on `feature/daily-fitness-tracker`.
+  * **Permanent Database Storage (`app/db.py`)**: Added tables `user_profiles`, `food_entries`, `activity_entries`, `body_measurements`, `email_reports`, and `email_subscriptions`.
+  * **Fitness Calculation Engine (`app/tracker_engine.py`)**: Nutrition summaries, double-counting elimination formula, rolling 7-day weight average, and progress confidence score.
+  * **Automated Test Coverage**:
+    * 108 tests passing across all test suites in 1.04s.
+    * Zero Ruff lint warnings.
+
+---
+
 ## [0.3.2] — 2026-10-31
 
 ### Fixed

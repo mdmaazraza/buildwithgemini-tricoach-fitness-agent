@@ -9,6 +9,7 @@
 <style>
   :root {
     --accent: #f97316;
+    --accent-hover: #ea580c;
     --accent-light: #ffedd5;
     --bg: #f8fafc;
     --card-bg: #ffffff;
@@ -20,6 +21,9 @@
     --bubble-agent: #ffffff;
     --chip-bg: #f1f5f9;
     --chip-text: #334155;
+    --success: #16a34a;
+    --warning: #d97706;
+    --info: #0284c7;
   }
 
   [data-theme="dark"] {
@@ -45,19 +49,21 @@
     height: 100vh;
     color: var(--text-main);
     transition: background 0.3s, color 0.3s;
+    overflow: hidden;
   }
 
   header {
     background: var(--header-bg);
     color: #fff;
-    padding: 0.85rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     font-weight: 700;
     font-size: 1.15rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    z-index: 10;
+    z-index: 20;
+    flex-shrink: 0;
   }
 
   .brand-title {
@@ -112,6 +118,68 @@
     transform: scale(1.05);
   }
 
+  /* --- Top Tab Navigation --- */
+  .app-nav {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .nav-tab {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0.55rem 1.2rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+  }
+
+  .nav-tab:hover {
+    color: var(--accent);
+    background: var(--chip-bg);
+  }
+
+  .nav-tab.active {
+    color: #fff;
+    background: var(--accent);
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+  }
+
+  /* --- View Panels --- */
+  .view-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .view-panel {
+    display: none;
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .view-panel.active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- Chat View --- */
   #chat-wrapper {
     flex: 1;
     display: flex;
@@ -124,6 +192,7 @@
     background: var(--card-bg);
     box-shadow: 0 0 20px rgba(0,0,0,0.03);
     transition: background 0.3s;
+    height: 100%;
   }
 
   #log {
@@ -373,46 +442,218 @@
     transform: translateY(-1px);
   }
 
-  form {
+  form#form {
     display: flex;
     gap: 0.6rem;
     align-items: center;
   }
 
-  input {
-    flex: 1;
-    padding: 0.8rem 1.1rem;
+  input, select, textarea {
+    padding: 0.75rem 1rem;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 0.98rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
     background: var(--bg);
     color: var(--text-main);
   }
 
-  input:focus {
+  input:focus, select:focus, textarea:focus {
     background: var(--card-bg);
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
   }
 
-  button[type="submit"] {
-    padding: 0.8rem 1.4rem;
+  button.btn-primary, button[type="submit"] {
+    padding: 0.75rem 1.3rem;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--bubble-user);
     color: #fff;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.94rem;
     cursor: pointer;
     transition: transform 0.15s, opacity 0.2s;
     box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
   }
 
-  button[type="submit"]:hover {
+  button.btn-primary:hover, button[type="submit"]:hover {
     opacity: 0.93;
     transform: translateY(-1px);
+  }
+
+  button.btn-secondary {
+    padding: 0.65rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--chip-bg);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button.btn-secondary:hover {
+    background: var(--border);
+  }
+
+  /* --- Journal, Analytics & Reports Panels --- */
+  .panel-content {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.6rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .metric-badge {
+    background: var(--chip-bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .form-group label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Tables */
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 0.5rem;
+  }
+
+  table.data-table th, table.data-table td {
+    padding: 0.65rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.data-table th {
+    background: var(--chip-bg);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  .badge-tag {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-tag.verified { background: #dcfce7; color: #166534; }
+  .badge-tag.estimate { background: #fef3c7; color: #92400e; }
+  .badge-tag.manual { background: #e0f2fe; color: #0369a1; }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0.2rem 0;
+  }
+
+  .stat-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .disclaimer-box {
+    background: rgba(249, 115, 22, 0.08);
+    border-left: 4px solid var(--accent);
+    padding: 0.8rem 1rem;
+    border-radius: 4px 8px 8px 4px;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: var(--text-muted);
   }
 
   /* --- A2UI Component Styles --- */
@@ -447,41 +688,522 @@
   </div>
 </header>
 
-<div id="chat-wrapper">
-  <div id="log">
-    <div id="welcome-card" class="welcome-hero">
-      <div class="hero-icon">⚡</div>
-      <h2>Welcome to TriCoach AI!</h2>
-      <p>Your elite AI triathlon & endurance coach. Ask me to log your workouts, compute target heart rate zones, fetch nearby training spots, or create motivational visuals.</p>
-      <div class="hero-tags">
-        <span class="hero-tag">🏊 Swim Training</span>
-        <span class="hero-tag">🚴 Cycling Metrics</span>
-        <span class="hero-tag">🏃 Run Logging</span>
-        <span class="hero-tag">🫀 HR Zones</span>
-        <span class="hero-tag">🎨 AI Motivation</span>
+<nav class="app-nav">
+  <button type="button" class="nav-tab active" data-tab="tab-chat">💬 Coach Chat</button>
+  <button type="button" class="nav-tab" data-tab="tab-journal">📝 Daily Journal</button>
+  <button type="button" class="nav-tab" data-tab="tab-analytics">📊 Progress Analytics</button>
+  <button type="button" class="nav-tab" data-tab="tab-reports">✉️ Email Reports</button>
+</nav>
+
+<div class="view-container">
+  <!-- TAB 1: COACH CHAT -->
+  <div id="tab-chat" class="view-panel active">
+    <div id="chat-wrapper">
+      <div id="log">
+        <div id="welcome-card" class="welcome-hero">
+          <div class="hero-icon">⚡</div>
+          <h2>Welcome to TriCoach AI!</h2>
+          <p>Your elite AI triathlon & endurance coach. Ask me to log your workouts, compute target heart rate zones, check your daily calorie balance, or summarize progress.</p>
+          <div class="hero-tags">
+            <span class="hero-tag">🏊 Swim Training</span>
+            <span class="hero-tag">🚴 Cycling Metrics</span>
+            <span class="hero-tag">🏃 Run Logging</span>
+            <span class="hero-tag">🥗 Nutrition Balance</span>
+            <span class="hero-tag">🫀 HR Zones</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-controls">
+        <div id="categories-bar" class="categories-bar">
+          <button type="button" class="cat-chip active" onclick="setCategory('all')">All</button>
+          <button type="button" class="cat-chip" onclick="setCategory('nutrition')">🥗 Nutrition</button>
+          <button type="button" class="cat-chip" onclick="setCategory('swim')">🏊 Swim</button>
+          <button type="button" class="cat-chip" onclick="setCategory('bike')">🚴 Bike</button>
+          <button type="button" class="cat-chip" onclick="setCategory('run')">🏃 Run</button>
+          <button type="button" class="cat-chip" onclick="setCategory('zones')">🫀 Zones</button>
+        </div>
+        <div id="prompts-bar" class="prompts-bar"></div>
+
+        <form id="form">
+          <input id="input" placeholder="Ask your triathlon & fitness coach…" autocomplete="off" autofocus>
+          <button type="submit">Send ⚡</button>
+        </form>
       </div>
     </div>
   </div>
 
-  <div class="footer-controls">
-    <div id="categories-bar" class="categories-bar">
-      <button type="button" class="cat-chip active" onclick="setCategory('all')">All</button>
-      <button type="button" class="cat-chip" onclick="setCategory('swim')">🏊 Swim</button>
-      <button type="button" class="cat-chip" onclick="setCategory('bike')">🚴 Bike</button>
-      <button type="button" class="cat-chip" onclick="setCategory('run')">🏃 Run</button>
-      <button type="button" class="cat-chip" onclick="setCategory('zones')">🫀 Zones</button>
-      <button type="button" class="cat-chip" onclick="setCategory('motivation')">🎨 Motivation</button>
-    </div>
-    <div id="prompts-bar" class="prompts-bar"></div>
+  <!-- TAB 2: DAILY JOURNAL -->
+  <div id="tab-journal" class="view-panel">
+    <div class="panel-content">
+      
+      <!-- Athlete Profile Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">👤 Personal Fitness Profile</div>
+          <button type="button" class="btn-secondary" onclick="toggleProfileForm()">✏️ Edit Profile</button>
+        </div>
+        <div id="profile-display" class="grid-4">
+          <div class="stat-card"><div class="stat-sub">Age & Sex</div><div id="disp-age-sex" class="stat-val" style="font-size:1.1rem;margin-top:0.5rem;">28 / Male</div></div>
+          <div class="stat-card"><div class="stat-sub">Height & Weight</div><div id="disp-ht-wt" class="stat-val" style="font-size:1.1rem;margin-top:0.5rem;">178 cm / 72 kg</div></div>
+          <div class="stat-card"><div class="stat-sub">Goal</div><div id="disp-goal" class="stat-val" style="font-size:1.1rem;margin-top:0.5rem;">Fat Loss</div></div>
+          <div class="stat-card"><div class="stat-sub">Activity Level</div><div id="disp-activity" class="stat-val" style="font-size:1.1rem;margin-top:0.5rem;">Moderate</div></div>
+        </div>
 
-    <form id="form">
-      <input id="input" placeholder="Ask your triathlon & fitness coach…" autocomplete="off" autofocus>
-      <button type="submit">Send ⚡</button>
-    </form>
+        <form id="profile-form" style="display:none;margin-top:1rem;" onsubmit="saveProfile(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Age</label><input type="number" id="prof-age" value="28" min="10" max="120" required></div>
+            <div class="form-group"><label>Height (cm)</label><input type="number" id="prof-height" value="178" min="50" max="250" step="0.5" required></div>
+            <div class="form-group"><label>Current Weight (kg)</label><input type="number" id="prof-weight" value="72" min="20" max="300" step="0.1" required></div>
+            <div class="form-group"><label>Sex</label>
+              <select id="prof-sex">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Activity Level</label>
+              <select id="prof-act">
+                <option value="sedentary">Sedentary (Desk Job)</option>
+                <option value="light">Lightly Active (1-3 days/wk)</option>
+                <option value="moderate" selected>Moderately Active (3-5 days/wk)</option>
+                <option value="very_active">Very Active (6-7 days/wk)</option>
+                <option value="extra_active">Extra Active (Endurance Athlete)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Fitness Goal</label>
+              <select id="prof-goal">
+                <option value="fat_loss" selected>Fat Loss</option>
+                <option value="muscle_gain">Muscle Gain / Lean Bulk</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Target Weight (kg)</label><input type="number" id="prof-target-weight" value="68" step="0.5"></div>
+            <div class="form-group"><label>Target Rate (kg/wk)</label><input type="number" id="prof-rate" value="0.5" min="0.1" max="1.5" step="0.1"></div>
+          </div>
+          <div style="display:flex;gap:0.6rem;margin-top:0.8rem;">
+            <button type="submit" class="btn-primary">Save Profile</button>
+            <button type="button" class="btn-secondary" onclick="toggleProfileForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Daily Date Selector -->
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);padding:0.75rem 1.2rem;border-radius:12px;border:1px solid var(--border);">
+        <span style="font-weight:600;">📅 Active Journal Date:</span>
+        <input type="date" id="journal-date" style="max-width:200px;" onchange="loadJournalDay()">
+      </div>
+
+      <!-- Food Tracking Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">🥗 Daily Food & Calorie Tracking</div>
+          <span class="metric-badge" id="food-day-calories">0 kcal logged</span>
+        </div>
+
+        <!-- Natural Language Quick-Logger -->
+        <div style="background:var(--bg);padding:1rem;border-radius:10px;margin-bottom:1.2rem;border:1px solid var(--border);">
+          <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.4rem;">⚡ Quick Natural-Language Food Logging</label>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+            <input type="text" id="nl-food-input" placeholder="e.g. 2 boiled eggs, 2 rotis and 1 bowl of chicken curry for lunch" style="flex:2;min-width:260px;">
+            <select id="nl-meal-type" style="flex:1;min-width:120px;">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch" selected>Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
+              <option value="beverage">Beverage</option>
+            </select>
+            <button type="button" class="btn-primary" onclick="parseNaturalFood()">Estimate with AI ⚡</button>
+          </div>
+          
+          <!-- Natural Language Review Area -->
+          <div id="nl-review-box" style="display:none;margin-top:1rem;border-top:1px dashed var(--border);padding-top:0.8rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:0.88rem;font-weight:600;color:var(--accent);">🔍 AI Estimation Preview (Unverified — Review & Confirm):</span>
+              <button type="button" class="btn-primary" style="padding:0.4rem 0.8rem;font-size:0.82rem;" onclick="confirmAllNlItems()">Confirm & Save All</button>
+            </div>
+            <div id="nl-items-container" style="margin-top:0.6rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
+          </div>
+        </div>
+
+        <!-- Manual Food Entry Toggle -->
+        <details style="margin-bottom:1rem;">
+          <summary style="font-size:0.88rem;font-weight:600;cursor:pointer;color:var(--accent);">+ Add Individual Food Item Manually</summary>
+          <form id="manual-food-form" style="margin-top:0.8rem;" onsubmit="saveManualFood(event)">
+            <div class="form-row">
+              <div class="form-group"><label>Meal Type</label>
+                <select id="man-meal-type">
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                  <option value="beverage">Beverage</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex:2;"><label>Food Name</label><input type="text" id="man-food-name" placeholder="e.g. Greek Yogurt" required></div>
+              <div class="form-group"><label>Quantity</label><input type="number" id="man-qty" value="1" min="0.1" step="0.1" required></div>
+              <div class="form-group"><label>Unit</label><input type="text" id="man-unit" value="cup (150g)" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Calories (kcal)</label><input type="number" id="man-cal" value="130" min="0" step="1" required></div>
+              <div class="form-group"><label>Protein (g)</label><input type="number" id="man-p" value="15" min="0" step="0.1"></div>
+              <div class="form-group"><label>Carbs (g)</label><input type="number" id="man-c" value="10" min="0" step="0.1"></div>
+              <div class="form-group"><label>Fat (g)</label><input type="number" id="man-f" value="2.5" min="0" step="0.1"></div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:0.4rem;">Save Food Entry</button>
+          </form>
+        </details>
+
+        <!-- Logged Food Items Table -->
+        <div class="table-responsive">
+          <table class="data-table" id="food-table">
+            <thead>
+              <tr>
+                <th>Meal</th>
+                <th>Food Item</th>
+                <th>Qty</th>
+                <th>Calories</th>
+                <th>Protein</th>
+                <th>Carbs</th>
+                <th>Fat</th>
+                <th>Source</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="food-table-body">
+              <tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No food items logged for this date.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Physical Activity Tracking Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">🏃 Physical Activity & Workouts</div>
+          <span class="metric-badge" id="act-day-burn">0 kcal burned</span>
+        </div>
+
+        <form id="activity-form" onsubmit="saveActivity(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Activity</label>
+              <select id="act-type" onchange="handleActTypeChange()">
+                <option value="Run">Run</option>
+                <option value="Bike">Bike Ride</option>
+                <option value="Swim">Swim</option>
+                <option value="Walk">Daily Walk</option>
+                <option value="Strength">Strength / Weights</option>
+                <option value="Other">Other Movement</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Duration (mins)</label><input type="number" id="act-dur" value="45" min="1" max="1440" required></div>
+            <div class="form-group"><label>Distance (km)</label><input type="number" id="act-dist" value="8" min="0" step="0.1"></div>
+            <div class="form-group"><label>Est. Burn (kcal)</label><input type="number" id="act-cal" value="420" min="0" step="1"></div>
+            <div class="form-group"><label>Intensity</label>
+              <select id="act-intensity">
+                <option value="moderate" selected>Moderate (Zone 2-3)</option>
+                <option value="light">Light (Zone 1)</option>
+                <option value="vigorous">Vigorous (Zone 4-5)</option>
+              </select>
+            </div>
+          </div>
+          <div id="strength-extra" class="form-row" style="display:none;">
+            <div class="form-group"><label>Strength Exercise</label><input type="text" id="str-exercise" placeholder="e.g. Barbell Squats"></div>
+            <div class="form-group"><label>Sets</label><input type="number" id="str-sets" value="4" min="1"></div>
+            <div class="form-group"><label>Reps</label><input type="number" id="str-reps" value="8" min="1"></div>
+            <div class="form-group"><label>Weight (kg)</label><input type="number" id="str-wt" value="80" min="0" step="0.5"></div>
+            <div class="form-group"><label>RPE (1-10)</label><input type="number" id="str-rpe" value="8" min="1" max="10"></div>
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:0.4rem;">Log Activity</button>
+        </form>
+
+        <div class="table-responsive" style="margin-top:1rem;">
+          <table class="data-table" id="act-table">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Duration</th>
+                <th>Distance</th>
+                <th>Calories</th>
+                <th>Intensity / Details</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="act-table-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No activities logged for this date.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Body Measurements Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">⚖️ Morning Body Measurements</div>
+          <span class="metric-badge">Weight & Waist Tracking</span>
+        </div>
+
+        <form id="meas-form" onsubmit="saveMeasurement(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Body Weight (kg)</label><input type="number" id="meas-wt" value="72.0" min="20" max="300" step="0.1" required></div>
+            <div class="form-group"><label>Waist (cm)</label><input type="number" id="meas-waist" value="82.0" min="30" max="250" step="0.5"></div>
+            <div class="form-group"><label>Body Fat (%)</label><input type="number" id="meas-bf" placeholder="Optional" min="3" max="60" step="0.1"></div>
+            <div class="form-group"><label>Condition</label>
+              <select id="meas-cond">
+                <option value="Morning Fasted" selected>Morning Fasted (Standard)</option>
+                <option value="Post Workout">Post Workout</option>
+                <option value="Evening">Evening</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:0.4rem;">Record Measurement & Sync Weight</button>
+        </form>
+
+        <div class="table-responsive" style="margin-top:1rem;">
+          <table class="data-table" id="meas-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Weight (kg)</th>
+                <th>Waist (cm)</th>
+                <th>Body Fat (%)</th>
+                <th>Condition</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="meas-table-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No recent measurements recorded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 3: PROGRESS ANALYTICS -->
+  <div id="tab-analytics" class="view-panel">
+    <div class="panel-content">
+      
+      <!-- Time Range Filters -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+        <div style="font-size:1.15rem;font-weight:700;">📊 Long-Term Fitness Progress & Analytics</div>
+        <div style="display:flex;gap:0.4rem;">
+          <button type="button" class="btn-secondary filter-btn" onclick="setAnalyticsWindow(7, this)">7 Days</button>
+          <button type="button" class="btn-secondary filter-btn active" onclick="setAnalyticsWindow(30, this)">30 Days</button>
+          <button type="button" class="btn-secondary filter-btn" onclick="setAnalyticsWindow(90, this)">90 Days</button>
+        </div>
+      </div>
+
+      <!-- Confidence Score Meter -->
+      <div class="section-card" style="border-left:5px solid var(--accent);">
+        <div class="section-header">
+          <div class="section-title">🎯 Progress Tracking Reliability & Confidence</div>
+          <span id="conf-rating-badge" class="metric-badge" style="background:#dcfce7;color:#166534;font-size:0.95rem;">90% (High Confidence)</span>
+        </div>
+        <div class="grid-4" id="conf-metrics-grid">
+          <div class="stat-card"><div class="stat-sub">Food Completeness</div><div id="conf-food" class="stat-val" style="font-size:1.2rem;">85%</div></div>
+          <div class="stat-card"><div class="stat-sub">Weigh-in Frequency</div><div id="conf-meas" class="stat-val" style="font-size:1.2rem;">80%</div></div>
+          <div class="stat-card"><div class="stat-sub">Activity Logs</div><div id="conf-acts" class="stat-val" style="font-size:1.2rem;">100%</div></div>
+          <div class="stat-card"><div class="stat-sub">Verified Data Ratio</div><div id="conf-verif" class="stat-val" style="font-size:1.2rem;">70%</div></div>
+        </div>
+      </div>
+
+      <!-- Calorie & Energy Balance Trend -->
+      <div class="grid-2">
+        <div class="section-card">
+          <div class="section-title" style="margin-bottom:0.8rem;">🔥 Today's Energy Balance (Double-Count Corrected)</div>
+          <div class="grid-2" style="margin-bottom:1rem;">
+            <div class="stat-card"><div class="stat-sub">Total Consumed</div><div id="an-cal-in" class="stat-val">0</div><div class="stat-sub">kcal</div></div>
+            <div class="stat-card"><div class="stat-sub">Total Burned (TDEE)</div><div id="an-cal-out" class="stat-val">0</div><div class="stat-sub">kcal</div></div>
+          </div>
+          <div style="background:var(--bg);padding:0.9rem;border-radius:10px;font-size:0.92rem;">
+            <div>• <strong>BMR (Mifflin-St Jeor)</strong>: <span id="an-bmr">0</span> kcal</div>
+            <div style="margin-top:0.3rem;">• <strong>Additional Exercise Burn</strong>: <span id="an-exercise-burn">0</span> kcal</div>
+            <div style="margin-top:0.3rem;">• <strong>Net Calorie Balance</strong>: <span id="an-net-balance" style="font-weight:700;color:var(--accent);">0 kcal</span> (<span id="an-balance-status">maintenance</span>)</div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title" style="margin-bottom:0.8rem;">🥗 Macronutrient Adherence vs Goal</div>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.25rem;">
+                <span><strong>Protein</strong> (<span id="an-prot-val">0</span>g / <span id="an-prot-tgt">140</span>g)</span>
+                <span id="an-prot-pct">0%</span>
+              </div>
+              <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;"><div id="bar-prot" style="height:100%;width:0%;background:#3b82f6;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.25rem;">
+                <span><strong>Carbohydrates</strong> (<span id="an-carb-val">0</span>g / <span id="an-carb-tgt">220</span>g)</span>
+                <span id="an-carb-pct">0%</span>
+              </div>
+              <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;"><div id="bar-carb" style="height:100%;width:0%;background:#f59e0b;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.25rem;">
+                <span><strong>Fats</strong> (<span id="an-fat-val">0</span>g / <span id="an-fat-tgt">55</span>g)</span>
+                <span id="an-fat-pct">0%</span>
+              </div>
+              <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;"><div id="bar-fat" style="height:100%;width:0%;background:#ef4444;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight & Body Composition Trend -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">📉 Rolling 7-Day Weight Average & Composition Hypothesis</div>
+        </div>
+        <div class="grid-3" style="margin-bottom:1rem;">
+          <div class="stat-card"><div class="stat-sub">Baseline 7d Avg</div><div id="an-base-avg" class="stat-val">-- kg</div></div>
+          <div class="stat-card"><div class="stat-sub">Current 7d Avg</div><div id="an-curr-avg" class="stat-val">-- kg</div></div>
+          <div class="stat-card"><div class="stat-sub">Waist Circumference Delta</div><div id="an-waist-delta" class="stat-val">-- cm</div></div>
+        </div>
+
+        <div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.3rem;">🧠 Body Composition Hypothesis:</div>
+          <div id="an-hypothesis-text" style="font-size:0.92rem;line-height:1.5;color:var(--text-main);">Log at least 3 weigh-ins to generate physiological trend hypotheses.</div>
+        </div>
+
+        <div class="disclaimer-box">
+          ⚠️ <strong>Physiological Uncertainty Notice:</strong> Day-to-day weight fluctuations on the bathroom scale reflect shifts in total body water, intracellular glycogen, and digestive transit time rather than true changes in lean muscle or adipose tissue. Calorie values and energy calculations utilize evidence-based formulas with standard physiological estimation variance (±10-15%).
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 4: EMAIL REPORTS -->
+  <div id="tab-reports" class="view-panel">
+    <div class="panel-content">
+      
+      <!-- Automated Subscription & Verification Card -->
+      <div class="section-card" style="border-left: 5px solid var(--accent);">
+        <div class="section-header">
+          <div class="section-title">📬 Automated Email Subscription & Verification</div>
+          <span id="sub-status-badge" class="metric-badge" style="background:#fee2e2;color:#991b1b;">Not Configured</span>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.92rem;margin-top:0;">Configure automated delivery of daily summaries and weekly digests using free email services such as <strong>Resend</strong> or standard SMTP.</p>
+
+        <form id="subscription-form" onsubmit="saveSubscription(event)">
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>Your Email Address</label>
+              <input type="email" id="sub-email" placeholder="athlete@example.com" required>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>Report Frequency</label>
+              <select id="sub-freq">
+                <option value="daily">Daily Morning Summary</option>
+                <option value="weekly">Weekly Digest (Sundays)</option>
+                <option value="both" selected>Both Daily & Weekly</option>
+                <option value="none">Paused / None</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="margin: 0.8rem 0; display:flex; align-items:center; gap:0.6rem;">
+            <input type="checkbox" id="sub-consent" checked style="width:18px;height:18px;cursor:pointer;">
+            <label for="sub-consent" style="font-size:0.88rem;cursor:pointer;">I consent to receive automated fitness progress reports via email.</label>
+          </div>
+
+          <div style="display:flex;gap:0.8rem;margin-top:0.6rem;">
+            <button type="submit" class="btn-primary" id="btn-save-sub">Save Preferences & Dispatch Verification</button>
+          </div>
+        </form>
+
+        <!-- Quick Code Verification Section -->
+        <div id="verify-box" style="display:none;margin-top:1.2rem;background:var(--bg);padding:1rem;border-radius:10px;border:1px solid var(--border);">
+          <div style="font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;color:var(--accent);">🔑 Enter Verification Code from Email:</div>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+            <input type="text" id="verify-token-input" placeholder="Paste 12-character token" style="flex:2;min-width:200px;">
+            <button type="button" class="btn-primary" onclick="submitVerificationToken()">Verify Email ✅</button>
+          </div>
+          <div id="verify-result-msg" style="margin-top:0.5rem;font-size:0.84rem;"></div>
+        </div>
+      </div>
+
+      <!-- Test Send & Live Preview Card -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">⚡ Instant Test Report & Live Preview</div>
+          <span class="metric-badge">Resend / SMTP / Simulation</span>
+        </div>
+
+        <form id="email-report-form" onsubmit="triggerEmailReport(event)">
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>Target Email Address</label>
+              <input type="email" id="rep-email" placeholder="athlete@example.com" value="athlete@example.com" required>
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>Report Period</label>
+              <select id="rep-period">
+                <option value="daily">Daily Summary (Today)</option>
+                <option value="weekly" selected>Weekly Digest (Last 7 Days)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.8rem;margin-top:0.6rem;">
+            <button type="submit" class="btn-primary" id="btn-send-report">✉️ Send Test Report Now</button>
+            <button type="button" class="btn-secondary" onclick="previewEmailReport()">👁️ Live Preview</button>
+          </div>
+        </form>
+
+        <div id="rep-status-banner" style="display:none;margin-top:1rem;padding:0.8rem 1rem;border-radius:8px;font-size:0.9rem;"></div>
+      </div>
+
+      <!-- Live Preview Area -->
+      <div id="rep-preview-card" class="section-card" style="display:none;">
+        <div class="section-header">
+          <div class="section-title">📄 Report Content Preview</div>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('rep-preview-card').style.display='none'">Close</button>
+        </div>
+        <div id="rep-preview-content" style="white-space:pre-wrap;font-family:monospace;font-size:0.86rem;background:var(--bg);padding:1rem;border-radius:8px;max-height:400px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Sent Email Reports History -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">📜 Delivery Audit Log & History</div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="email-history-table">
+            <thead>
+              <tr>
+                <th>Dispatched At</th>
+                <th>Recipient</th>
+                <th>Period</th>
+                <th>Provider</th>
+                <th>Status</th>
+                <th>Subject</th>
+              </tr>
+            </thead>
+            <tbody id="email-history-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No reports dispatched yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Free Hosting & Background Jobs Guide -->
+      <div class="disclaimer-box" style="border-left-color: var(--info);">
+        💡 <strong>Free Cloud Hosting & Background Scheduler Notice:</strong><br>
+        • TriCoach AI includes a server-side background daemon that continues working when you close your browser.<br>
+        • <em>Render.com Free Tier Limitation:</em> On Render free web services, idle apps spin down (sleep) after 15 minutes of inactivity, pausing in-process timers.<br>
+        • <em>Free Solution:</em> Set up a 100% free scheduled ping via <strong>cron-job.org</strong>, <strong>UptimeRobot</strong>, or <strong>GitHub Actions</strong> calling <code>POST https://&lt;your-app&gt;.onrender.com/api/reports/cron-trigger</code> once daily. This wakes the service, generates your report, and delivers it via Resend for free!
+      </div>
+
+    </div>
   </div>
 </div>
 
 <script>
+// --- Global Elements ---
 const log = document.getElementById("log");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
@@ -489,12 +1211,36 @@ const welcomeCard = document.getElementById("welcome-card");
 const promptsBar = document.getElementById("prompts-bar");
 const themeToggleBtn = document.getElementById("theme-toggle");
 
+let currentAthleteId = "athlete-01";
+let currentJournalDate = new Date().toISOString().split("T")[0];
+document.getElementById("journal-date").value = currentJournalDate;
+
+// --- Tab Navigation ---
+document.querySelectorAll(".nav-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    const targetId = tab.getAttribute("data-tab");
+    document.getElementById(targetId).classList.add("active");
+
+    if (targetId === "tab-journal") loadJournalDay();
+    if (targetId === "tab-analytics") loadAnalytics();
+    if (targetId === "tab-reports") loadEmailHistory();
+  });
+});
+
 // --- Category Prompts Mapping ---
 const promptsMap = {
   all: [
+    { label: "🥗 Today's Calorie Balance", text: "How many calories have I eaten today and what is my deficit?" },
     { label: "🫀 HR Zones", text: "Calculate heart rate zones for max HR 185, resting HR 60" },
-    { label: "🏃 Log 10km Run", text: "Log a 10km run in 48 mins with avg HR 152" },
-    { label: "🎨 Motivation Image", text: "Generate a motivational poster for my triathlon race" }
+    { label: "🏃 Log 10km Run", text: "Log a 10km run in 48 mins with avg HR 152" }
+  ],
+  nutrition: [
+    { label: "🥗 Calorie Balance", text: "How many calories have I eaten today and what is my deficit?" },
+    { label: "🥩 Protein Target", text: "Am I hitting my protein target today based on my stored profile?" },
+    { label: "📉 Weight Trend", text: "What is my 7-day rolling average weight trend?" }
   ],
   swim: [
     { label: "🏊 Log 1500m Swim", text: "Log a 1500m swim workout in 28 mins" },
@@ -511,10 +1257,6 @@ const promptsMap = {
   zones: [
     { label: "🫀 Calculate HR Zones", text: "Calculate heart rate zones for max HR 185, resting HR 60" },
     { label: "📊 Zone 2 Benefits", text: "Explain Zone 2 aerobic base training benefits" }
-  ],
-  motivation: [
-    { label: "🎨 Race Motivation", text: "Generate a motivational poster for my triathlon race" },
-    { label: "🎨 Finish Line Visual", text: "Generate an image of crossing a triathlon finish line" }
   ]
 };
 
@@ -587,7 +1329,6 @@ function showTypingIndicator() {
 /* ----------------------------------------------------------------------------
  * A2UI Mini-Renderer (v0.8 Basic Catalog subset).
  * -------------------------------------------------------------------------- */
-
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -709,7 +1450,11 @@ form.addEventListener("submit", async (ev) => {
   const b = showTypingIndicator();
 
   try {
-    const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, user_id: currentAthleteId })
+    });
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
@@ -719,6 +1464,736 @@ form.addEventListener("submit", async (ev) => {
     b.textContent = "Error: " + e.message;
   }
 });
+
+/* ----------------------------------------------------------------------------
+ * Profile & Journal Controllers
+ * -------------------------------------------------------------------------- */
+async function loadProfile() {
+  try {
+    const res = await fetch(`/api/profile?athlete_id=${currentAthleteId}`);
+    const data = await res.json();
+    if (data.profile) {
+      const p = data.profile;
+      document.getElementById("disp-age-sex").textContent = `${p.age} yrs / ${p.sex}`;
+      document.getElementById("disp-ht-wt").textContent = `${p.height_cm} cm / ${p.current_weight_kg} kg`;
+      document.getElementById("disp-goal").textContent = p.goal.replace("_", " ").toUpperCase();
+      document.getElementById("disp-activity").textContent = p.activity_level.replace("_", " ");
+
+      document.getElementById("prof-age").value = p.age;
+      document.getElementById("prof-height").value = p.height_cm;
+      document.getElementById("prof-weight").value = p.current_weight_kg;
+      document.getElementById("prof-sex").value = p.sex;
+      document.getElementById("prof-act").value = p.activity_level;
+      document.getElementById("prof-goal").value = p.goal;
+      document.getElementById("prof-target-weight").value = p.target_weight_kg || "";
+      document.getElementById("prof-rate").value = p.target_rate_change || 0.5;
+
+      document.getElementById("meas-wt").value = p.current_weight_kg;
+    }
+  } catch (err) {
+    console.error("Failed to load profile:", err);
+  }
+}
+
+function toggleProfileForm() {
+  const pf = document.getElementById("profile-form");
+  pf.style.display = pf.style.display === "none" ? "block" : "none";
+}
+
+async function saveProfile(ev) {
+  ev.preventDefault();
+  const payload = {
+    athlete_id: currentAthleteId,
+    age: parseInt(document.getElementById("prof-age").value),
+    height_cm: parseFloat(document.getElementById("prof-height").value),
+    current_weight_kg: parseFloat(document.getElementById("prof-weight").value),
+    sex: document.getElementById("prof-sex").value,
+    activity_level: document.getElementById("prof-act").value,
+    goal: document.getElementById("prof-goal").value,
+    target_weight_kg: parseFloat(document.getElementById("prof-target-weight").value) || null,
+    target_rate_change: parseFloat(document.getElementById("prof-rate").value) || 0.5,
+    preferred_units: "metric"
+  };
+
+  try {
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      toggleProfileForm();
+      loadProfile();
+      loadJournalDay();
+    }
+  } catch (err) {
+    alert("Error saving profile: " + err.message);
+  }
+}
+
+async function loadJournalDay() {
+  currentJournalDate = document.getElementById("journal-date").value;
+  await Promise.all([loadFoodEntries(), loadActivities(), loadMeasurements()]);
+}
+
+async function loadFoodEntries() {
+  try {
+    const res = await fetch(`/api/food/entries?athlete_id=${currentAthleteId}&date=${currentJournalDate}`);
+    const data = await res.json();
+    const tbody = document.getElementById("food-table-body");
+    tbody.innerHTML = "";
+
+    let totalCal = 0;
+    if (!data.entries || data.entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No food items logged for this date.</td></tr>';
+      document.getElementById("food-day-calories").textContent = "0 kcal logged";
+      return;
+    }
+
+    data.entries.forEach(e => {
+      totalCal += e.calories;
+      const tr = document.createElement("tr");
+      const badgeCls = e.is_verified ? "verified" : (e.data_source === "manual" ? "manual" : "estimate");
+      tr.innerHTML = `
+        <td style="text-transform:capitalize;font-weight:600;">${e.meal_type}</td>
+        <td><strong>${e.food_name}</strong></td>
+        <td>${e.quantity} ${e.unit}</td>
+        <td>${Math.round(e.calories)} kcal</td>
+        <td>${e.protein_g}g</td>
+        <td>${e.carbs_g}g</td>
+        <td>${e.fat_g}g</td>
+        <td><span class="badge-tag ${badgeCls}">${e.is_verified ? "Verified" : e.data_source}</span></td>
+        <td><button type="button" class="btn-secondary" style="padding:0.25rem 0.6rem;font-size:0.75rem;" onclick="deleteFood('${e.id}')">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("food-day-calories").textContent = `${Math.round(totalCal)} kcal logged`;
+  } catch (err) {
+    console.error("Error loading foods:", err);
+  }
+}
+
+let pendingNlItems = [];
+
+async function parseNaturalFood() {
+  const text = document.getElementById("nl-food-input").value.trim();
+  const meal = document.getElementById("nl-meal-type").value;
+  if (!text) return;
+
+  const btn = event.target;
+  btn.textContent = "Estimating...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/food/parse-natural", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text, meal_type: meal })
+    });
+    const data = await res.json();
+    pendingNlItems = data.items || [];
+
+    const container = document.getElementById("nl-items-container");
+    container.innerHTML = "";
+
+    if (data.clarifications_needed && data.clarifications_needed.length) {
+      const clarDiv = el("div", null, "ℹ️ " + data.clarifications_needed.join(" "));
+      clarDiv.style.cssText = "font-size:0.82rem;color:var(--text-muted);margin-bottom:0.4rem;";
+      container.appendChild(clarDiv);
+    }
+
+    pendingNlItems.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);padding:0.6rem;border-radius:8px;border:1px solid var(--border);font-size:0.85rem;";
+      row.innerHTML = `
+        <div>
+          <strong>${item.food_name}</strong> (${item.quantity} ${item.unit}) — 
+          <span style="color:var(--accent);font-weight:600;">${item.calories} kcal</span> 
+          (P: ${item.protein_g}g, C: ${item.carbs_g}g, F: ${item.fat_g}g)
+          <span class="badge-tag estimate" style="margin-left:0.4rem;">AI Estimate</span>
+        </div>
+        <button type="button" class="btn-primary" style="padding:0.3rem 0.6rem;font-size:0.75rem;" onclick="confirmSingleNlItem(${idx})">Confirm & Log</button>
+      `;
+      container.appendChild(row);
+    });
+
+    document.getElementById("nl-review-box").style.display = "block";
+  } catch (err) {
+    alert("Parsing failed: " + err.message);
+  } finally {
+    btn.textContent = "Estimate with AI ⚡";
+    btn.disabled = false;
+  }
+}
+
+async function confirmSingleNlItem(idx) {
+  const item = pendingNlItems[idx];
+  if (!item) return;
+  const payload = {
+    athlete_id: currentAthleteId,
+    date: currentJournalDate,
+    meal_type: item.meal_type || "lunch",
+    food_name: item.food_name,
+    quantity: item.quantity,
+    unit: item.unit,
+    calories: item.calories,
+    protein_g: item.protein_g,
+    carbs_g: item.carbs_g,
+    fat_g: item.fat_g,
+    fiber_g: item.fiber_g || 0.0,
+    data_source: "ai_estimate",
+    is_verified: true
+  };
+
+  await fetch("/api/food/entries", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  pendingNlItems.splice(idx, 1);
+  if (pendingNlItems.length === 0) {
+    document.getElementById("nl-review-box").style.display = "none";
+    document.getElementById("nl-food-input").value = "";
+  }
+  loadFoodEntries();
+}
+
+async function confirmAllNlItems() {
+  for (const item of pendingNlItems) {
+    const payload = {
+      athlete_id: currentAthleteId,
+      date: currentJournalDate,
+      meal_type: item.meal_type || "lunch",
+      food_name: item.food_name,
+      quantity: item.quantity,
+      unit: item.unit,
+      calories: item.calories,
+      protein_g: item.protein_g,
+      carbs_g: item.carbs_g,
+      fat_g: item.fat_g,
+      fiber_g: item.fiber_g || 0.0,
+      data_source: "ai_estimate",
+      is_verified: true
+    };
+    await fetch("/api/food/entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }
+  pendingNlItems = [];
+  document.getElementById("nl-review-box").style.display = "none";
+  document.getElementById("nl-food-input").value = "";
+  loadFoodEntries();
+}
+
+async function saveManualFood(ev) {
+  ev.preventDefault();
+  const payload = {
+    athlete_id: currentAthleteId,
+    date: currentJournalDate,
+    meal_type: document.getElementById("man-meal-type").value,
+    food_name: document.getElementById("man-food-name").value.trim(),
+    quantity: parseFloat(document.getElementById("man-qty").value),
+    unit: document.getElementById("man-unit").value.trim(),
+    calories: parseFloat(document.getElementById("man-cal").value),
+    protein_g: parseFloat(document.getElementById("man-p").value) || 0.0,
+    carbs_g: parseFloat(document.getElementById("man-c").value) || 0.0,
+    fat_g: parseFloat(document.getElementById("man-f").value) || 0.0,
+    data_source: "manual",
+    is_verified: true
+  };
+
+  const res = await fetch("/api/food/entries", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (res.ok) {
+    document.getElementById("manual-food-form").reset();
+    loadFoodEntries();
+  }
+}
+
+async function deleteFood(id) {
+  if (confirm("Delete this food entry?")) {
+    await fetch(`/api/food/entries/${id}`, { method: "DELETE" });
+    loadFoodEntries();
+  }
+}
+
+function handleActTypeChange() {
+  const type = document.getElementById("act-type").value;
+  document.getElementById("strength-extra").style.display = type === "Strength" ? "flex" : "none";
+}
+
+async function saveActivity(ev) {
+  ev.preventDefault();
+  const type = document.getElementById("act-type").value;
+  let strJson = null;
+  if (type === "Strength") {
+    strJson = JSON.stringify([{
+      exercise: document.getElementById("str-exercise").value || "General Strength",
+      sets: parseInt(document.getElementById("str-sets").value) || 3,
+      reps: parseInt(document.getElementById("str-reps").value) || 10,
+      weight_kg: parseFloat(document.getElementById("str-wt").value) || 0,
+      rpe: parseInt(document.getElementById("str-rpe").value) || 8
+    }]);
+  }
+
+  const payload = {
+    athlete_id: currentAthleteId,
+    date: currentJournalDate,
+    activity_type: type,
+    duration_minutes: parseInt(document.getElementById("act-dur").value),
+    intensity: document.getElementById("act-intensity").value,
+    distance_km: parseFloat(document.getElementById("act-dist").value) || 0.0,
+    calories_burned: parseFloat(document.getElementById("act-cal").value) || 0.0,
+    strength_details_json: strJson,
+    data_source: "manual"
+  };
+
+  const res = await fetch("/api/activities", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (res.ok) {
+    loadActivities();
+  }
+}
+
+async function loadActivities() {
+  try {
+    const res = await fetch(`/api/activities?athlete_id=${currentAthleteId}&date=${currentJournalDate}`);
+    const data = await res.json();
+    const tbody = document.getElementById("act-table-body");
+    tbody.innerHTML = "";
+
+    let totalBurn = 0;
+    if (!data.activities || data.activities.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No activities logged for this date.</td></tr>';
+      document.getElementById("act-day-burn").textContent = "0 kcal burned";
+      return;
+    }
+
+    data.activities.forEach(a => {
+      totalBurn += a.calories_burned;
+      let details = a.intensity;
+      if (a.strength_details_json) {
+        try {
+          const s = JSON.parse(a.strength_details_json)[0];
+          details = `${s.exercise}: ${s.sets}x${s.reps} @ ${s.weight_kg}kg`;
+        } catch (_) {}
+      }
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${a.activity_type}</strong></td>
+        <td>${a.duration_minutes} min</td>
+        <td>${a.distance_km > 0 ? a.distance_km + " km" : "--"}</td>
+        <td>${Math.round(a.calories_burned)} kcal</td>
+        <td>${details}</td>
+        <td><button type="button" class="btn-secondary" style="padding:0.25rem 0.6rem;font-size:0.75rem;" onclick="deleteActivity('${a.id}')">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("act-day-burn").textContent = `${Math.round(totalBurn)} kcal burned`;
+  } catch (err) {
+    console.error("Error loading activities:", err);
+  }
+}
+
+async function deleteActivity(id) {
+  if (confirm("Delete this activity log?")) {
+    await fetch(`/api/activities/${id}`, { method: "DELETE" });
+    loadActivities();
+  }
+}
+
+async function saveMeasurement(ev) {
+  ev.preventDefault();
+  const payload = {
+    athlete_id: currentAthleteId,
+    date: currentJournalDate,
+    weight_kg: parseFloat(document.getElementById("meas-wt").value),
+    waist_cm: parseFloat(document.getElementById("meas-waist").value) || null,
+    body_fat_pct: parseFloat(document.getElementById("meas-bf").value) || null,
+    measurement_method: document.getElementById("meas-cond").value,
+    notes: ""
+  };
+
+  const res = await fetch("/api/measurements", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (res.ok) {
+    loadMeasurements();
+    loadProfile();
+  }
+}
+
+async function loadMeasurements() {
+  try {
+    const res = await fetch(`/api/measurements?athlete_id=${currentAthleteId}&limit=10`);
+    const data = await res.json();
+    const tbody = document.getElementById("meas-table-body");
+    tbody.innerHTML = "";
+
+    if (!data.measurements || data.measurements.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No recent measurements recorded.</td></tr>';
+      return;
+    }
+
+    data.measurements.forEach(m => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${m.date}</td>
+        <td><strong>${m.weight_kg} kg</strong></td>
+        <td>${m.waist_cm ? m.waist_cm + " cm" : "--"}</td>
+        <td>${m.body_fat_pct ? m.body_fat_pct + "%" : "--"}</td>
+        <td>${m.measurement_method || "Morning"}</td>
+        <td><button type="button" class="btn-secondary" style="padding:0.25rem 0.6rem;font-size:0.75rem;" onclick="deleteMeasurement('${m.id}')">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading measurements:", err);
+  }
+}
+
+async function deleteMeasurement(id) {
+  if (confirm("Delete this measurement?")) {
+    await fetch(`/api/measurements/${id}`, { method: "DELETE" });
+    loadMeasurements();
+    loadProfile();
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Analytics & Trends Controller
+ * -------------------------------------------------------------------------- */
+let currentAnalyticsDays = 30;
+
+function setAnalyticsWindow(days, btn) {
+  currentAnalyticsDays = days;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  loadAnalytics();
+}
+
+async function loadAnalytics() {
+  try {
+    // 1. Daily summary & energy balance
+    const sumRes = await fetch(`/api/analytics/daily-summary?athlete_id=${currentAthleteId}&date=${currentJournalDate}`);
+    const sumData = await sumRes.json();
+    if (sumData.energy_balance && sumData.nutrition) {
+      const eb = sumData.energy_balance;
+      const nut = sumData.nutrition;
+
+      document.getElementById("an-cal-in").textContent = Math.round(eb.calories_consumed);
+      document.getElementById("an-cal-out").textContent = Math.round(eb.total_energy_expenditure);
+      document.getElementById("an-bmr").textContent = Math.round(eb.bmr);
+      document.getElementById("an-exercise-burn").textContent = Math.round(eb.additional_exercise_burn);
+      document.getElementById("an-net-balance").textContent = `${eb.estimated_calorie_balance > 0 ? "+" : ""}${Math.round(eb.estimated_calorie_balance)} kcal`;
+      document.getElementById("an-balance-status").textContent = eb.balance_status;
+
+      // Macros
+      const targets = nut.targets || {};
+      const totals = nut.totals || {};
+
+      const protVal = totals.protein_g || 0;
+      const protTgt = targets.target_protein_g || 140;
+      const protPct = Math.min(100, Math.round((protVal / protTgt) * 100));
+      document.getElementById("an-prot-val").textContent = Math.round(protVal);
+      document.getElementById("an-prot-tgt").textContent = Math.round(protTgt);
+      document.getElementById("an-prot-pct").textContent = `${protPct}%`;
+      document.getElementById("bar-prot").style.width = `${protPct}%`;
+
+      const carbVal = totals.carbs_g || 0;
+      const carbTgt = targets.target_carbs_g || 220;
+      const carbPct = Math.min(100, Math.round((carbVal / carbTgt) * 100));
+      document.getElementById("an-carb-val").textContent = Math.round(carbVal);
+      document.getElementById("an-carb-tgt").textContent = Math.round(carbTgt);
+      document.getElementById("an-carb-pct").textContent = `${carbPct}%`;
+      document.getElementById("bar-carb").style.width = `${carbPct}%`;
+
+      const fatVal = totals.fat_g || 0;
+      const fatTgt = targets.target_fat_g || 55;
+      const fatPct = Math.min(100, Math.round((fatVal / fatTgt) * 100));
+      document.getElementById("an-fat-val").textContent = Math.round(fatVal);
+      document.getElementById("an-fat-tgt").textContent = Math.round(fatTgt);
+      document.getElementById("an-fat-pct").textContent = `${fatPct}%`;
+      document.getElementById("bar-fat").style.width = `${fatPct}%`;
+    }
+
+    // 2. Trends
+    const trendsRes = await fetch(`/api/analytics/trends?athlete_id=${currentAthleteId}&days=${currentAnalyticsDays}`);
+    const trendsData = await trendsRes.json();
+    if (trendsData.trends) {
+      const t = trendsData.trends;
+      document.getElementById("an-base-avg").textContent = t.baseline_7d_avg_kg ? `${t.baseline_7d_avg_kg} kg` : "-- kg";
+      document.getElementById("an-curr-avg").textContent = t.current_7d_avg_kg ? `${t.current_7d_avg_kg} kg` : "-- kg";
+      document.getElementById("an-waist-delta").textContent = t.waist_delta_cm != null ? `${t.waist_delta_cm > 0 ? "+" : ""}${t.waist_delta_cm} cm` : "-- cm";
+
+      if (t.interpretations && t.interpretations.length) {
+        document.getElementById("an-hypothesis-text").innerHTML = t.interpretations.map(i => `• ${i}`).join("<br>");
+      } else {
+        document.getElementById("an-hypothesis-text").textContent = "Log at least 3 body measurements across days to calculate rolling trends.";
+      }
+    }
+
+    // 3. Confidence score
+    const confRes = await fetch(`/api/analytics/confidence?athlete_id=${currentAthleteId}&days=7`);
+    const confData = await confRes.json();
+    if (confData.confidence) {
+      const c = confData.confidence;
+      const score = c.confidence_score_percent;
+      const badge = document.getElementById("conf-rating-badge");
+      badge.textContent = `${score}% (${c.reliability_rating.toUpperCase()})`;
+      badge.style.background = score >= 75 ? "#dcfce7" : (score >= 50 ? "#fef3c7" : "#fee2e2");
+      badge.style.color = score >= 75 ? "#166534" : (score >= 50 ? "#92400e" : "#991b1b");
+
+      const comp = c.component_scores || {};
+      document.getElementById("conf-food").textContent = `${comp.food_completeness || 0}%`;
+      document.getElementById("conf-meas").textContent = `${comp.weighin_frequency || 0}%`;
+      document.getElementById("conf-acts").textContent = `${comp.activity_consistency || 0}%`;
+      document.getElementById("conf-verif").textContent = `${comp.verification_ratio || 0}%`;
+    }
+  } catch (err) {
+    console.error("Error loading analytics:", err);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Email Reports & Subscription Controller
+ * -------------------------------------------------------------------------- */
+async function loadSubscription() {
+  try {
+    const res = await fetch(`/api/reports/subscription?athlete_id=${currentAthleteId}`);
+    const data = await res.json();
+    const sub = data.subscription;
+    const badge = document.getElementById("sub-status-badge");
+    const verifyBox = document.getElementById("verify-box");
+
+    if (sub && sub.email) {
+      document.getElementById("sub-email").value = sub.email;
+      document.getElementById("rep-email").value = sub.email;
+      document.getElementById("sub-freq").value = sub.report_frequency || "both";
+      document.getElementById("sub-consent").checked = Boolean(sub.user_consent);
+
+      if (sub.is_verified) {
+        badge.textContent = "Verified Active ✅";
+        badge.style.background = "#dcfce7";
+        badge.style.color = "#166534";
+        verifyBox.style.display = "none";
+      } else {
+        badge.textContent = "Unverified ⚠️";
+        badge.style.background = "#fef3c7";
+        badge.style.color = "#92400e";
+        verifyBox.style.display = "block";
+      }
+    } else {
+      badge.textContent = "Not Configured";
+      badge.style.background = "#fee2e2";
+      badge.style.color = "#991b1b";
+      verifyBox.style.display = "none";
+    }
+  } catch (err) {
+    console.error("Error loading subscription:", err);
+  }
+}
+
+async function saveSubscription(ev) {
+  ev.preventDefault();
+  const email = document.getElementById("sub-email").value.trim();
+  const freq = document.getElementById("sub-freq").value;
+  const consent = document.getElementById("sub-consent").checked;
+  const btn = document.getElementById("btn-save-sub");
+
+  if (!consent) {
+    alert("Please check the consent box to receive automated reports.");
+    return;
+  }
+
+  btn.textContent = "Saving & Sending Verification...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/reports/subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        athlete_id: currentAthleteId,
+        email: email,
+        report_frequency: freq,
+        user_consent: consent
+      })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      await loadSubscription();
+      loadEmailHistory();
+      alert(`Subscription preferences saved! A verification email with your code has been dispatched to ${email}.`);
+    } else {
+      alert("Subscription failed: " + (data.detail || "Unknown error"));
+    }
+  } catch (err) {
+    alert("Subscription failed: " + err.message);
+  } finally {
+    btn.textContent = "Save Preferences & Dispatch Verification";
+    btn.disabled = false;
+  }
+}
+
+async function submitVerificationToken() {
+  const token = document.getElementById("verify-token-input").value.trim();
+  const msgBox = document.getElementById("verify-result-msg");
+  if (!token) return;
+
+  try {
+    const res = await fetch("/api/reports/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        athlete_id: currentAthleteId,
+        token: token
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.verified) {
+      msgBox.style.color = "#166534";
+      msgBox.textContent = "✅ Verification successful! Your automated reports are now active.";
+      await loadSubscription();
+    } else {
+      msgBox.style.color = "#991b1b";
+      msgBox.textContent = "❌ Invalid verification token. Please re-check the email.";
+    }
+  } catch (err) {
+    msgBox.style.color = "#991b1b";
+    msgBox.textContent = "Verification request failed: " + err.message;
+  }
+}
+
+async function loadEmailHistory() {
+  try {
+    const res = await fetch(`/api/reports/email/history?athlete_id=${currentAthleteId}`);
+    const data = await res.json();
+    const tbody = document.getElementById("email-history-body");
+    tbody.innerHTML = "";
+
+    if (!data.history || data.history.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No reports dispatched yet.</td></tr>';
+      return;
+    }
+
+    data.history.forEach(h => {
+      const tr = document.createElement("tr");
+      const provider = h.provider || "simulated";
+      const isSent = h.status === "sent";
+      const statusBadge = isSent ? "verified" : (h.status === "simulated" ? "estimate" : "badge-tag");
+      
+      tr.innerHTML = `
+        <td>${h.sent_at}</td>
+        <td>${h.recipient_email}</td>
+        <td style="text-transform:capitalize;">${h.report_period.replace("_", " ")}</td>
+        <td><strong style="text-transform:uppercase;font-size:0.75rem;color:var(--accent);">${provider}</strong></td>
+        <td><span class="badge-tag ${statusBadge}">${h.status.toUpperCase()}</span></td>
+        <td>${h.summary_text.slice(0, 45)}...</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading email history:", err);
+  }
+}
+
+async function triggerEmailReport(ev) {
+  ev.preventDefault();
+  const email = document.getElementById("rep-email").value.trim();
+  const period = document.getElementById("rep-period").value;
+  const btn = document.getElementById("btn-send-report");
+  const banner = document.getElementById("rep-status-banner");
+
+  btn.textContent = "Generating & Dispatching...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/reports/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        athlete_id: currentAthleteId,
+        recipient_email: email,
+        period: period,
+        report_date: currentJournalDate
+      })
+    });
+    const data = await res.json();
+    const rep = data.report || {};
+
+    banner.style.display = "block";
+    if (rep.status === "sent") {
+      banner.style.background = "#dcfce7";
+      banner.style.color = "#166534";
+      banner.innerHTML = `✅ <strong>Success!</strong> Progress report delivered to <strong>${email}</strong> via <strong>${(rep.provider || "email").toUpperCase()}</strong>.`;
+    } else if (rep.status === "simulated") {
+      banner.style.background = "#fef3c7";
+      banner.style.color = "#92400e";
+      banner.innerHTML = `ℹ️ <strong>Offline Simulation Mode:</strong> Report generated and recorded in database. (To send live emails for free, add <code>RESEND_API_KEY</code> from Resend.com to your environment).`;
+    } else {
+      banner.style.background = "#fee2e2";
+      banner.style.color = "#991b1b";
+      banner.innerHTML = `❌ <strong>Delivery Failed:</strong> ${rep.error_message || "Unknown error"}`;
+    }
+
+    loadEmailHistory();
+  } catch (err) {
+    banner.style.display = "block";
+    banner.style.background = "#fee2e2";
+    banner.style.color = "#991b1b";
+    banner.textContent = "Dispatch failed: " + err.message;
+  } finally {
+    btn.textContent = "✉️ Send Test Report Now";
+    btn.disabled = false;
+  }
+}
+
+async function previewEmailReport() {
+  const email = document.getElementById("rep-email").value.trim();
+  const period = document.getElementById("rep-period").value;
+
+  try {
+    const res = await fetch("/api/reports/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        athlete_id: currentAthleteId,
+        recipient_email: email,
+        period: period,
+        report_date: currentJournalDate
+      })
+    });
+    const data = await res.json();
+    const rep = data.report || {};
+
+    const previewCard = document.getElementById("rep-preview-card");
+    const previewContent = document.getElementById("rep-preview-content");
+    previewCard.style.display = "block";
+    previewContent.textContent = rep.text_content || "(No text preview available)";
+    previewCard.scrollIntoView({ behavior: "smooth" });
+  } catch (err) {
+    alert("Preview failed: " + err.message);
+  }
+}
+
+// Initial bootstrap
+loadProfile();
+loadJournalDay();
+loadSubscription();
 </script>
 </body>
 </html>
